@@ -60,20 +60,28 @@ PORT=3000
 JWT_SECRET="reemplazar-con-secreto-largo-aleatorio"
 ```
 
-Aplica las migraciones y genera el cliente de Prisma:
+(usa el `DATABASE_URL` local de la opción A, o el del VPS si usás la opción B).
+
+**Si usás opción A (DB local):** aplica las migraciones y genera el cliente de Prisma:
 
 ```bash
 npm run prisma:migrate
 npm run prisma:generate
 ```
 
-(Opcional) Carga datos iniciales — crea un admin de prueba y abre las inscripciones de ambos juegos:
+**Si usás opción B (DB compartida del VPS):** el esquema ya está aplicado por todo el equipo. Solo genera el cliente de Prisma (no corras `prisma:migrate`, crearía una migración nueva contra la DB compartida):
+
+```bash
+npm run prisma:generate
+```
+
+(Opcional) Carga datos iniciales — crea un admin de prueba y abre las inscripciones de ambos juegos. Es seguro correrlo también contra la DB compartida (usa upsert, no duplica nada):
 
 ```bash
 npm run seed
 ```
 
-Esto crea el administrador:
+Esto crea el administrador (si no existe):
 
 - **Email:** `admin@torneo.com`
 - **Password:** `admin123`

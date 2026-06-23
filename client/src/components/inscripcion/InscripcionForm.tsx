@@ -152,14 +152,16 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
           </label>
         </>
       )}
-      <label className="flex flex-col gap-1">
-        Nickname{form.juego === "FC25" ? " / ID (opcional)" : ""}
-        <input
-          className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
-          value={form.nickname}
-          onChange={(e): void => setForm({ ...form, nickname: e.target.value })}
-        />
-      </label>
+      {form.juego === "COD_BO2" && (
+        <label className="flex flex-col gap-1">
+          Nombre del equipo
+          <input
+            className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+            value={form.nickname}
+            onChange={(e): void => setForm({ ...form, nickname: e.target.value })}
+          />
+        </label>
+      )}
       <label className="flex flex-col gap-1">
         Juego
         <select

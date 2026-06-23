@@ -458,37 +458,6 @@ function LandingInscripcionForm(): JSX.Element {
                     />
                   </div>
 
-                  {/* Nickname (opcional) */}
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="inscripcion-nickname"
-                      className="text-sm font-semibold text-gray-300"
-                    >
-                      Nickname / ID (opcional)
-                    </label>
-                    <input
-                      id="inscripcion-nickname"
-                      type="text"
-                      placeholder="Ej: xXSniper99Xx"
-                      className="rounded-xl px-4 py-3 text-sm text-white outline-none transition-all duration-300"
-                      style={{
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                      }}
-                      value={form.nickname}
-                      onChange={(e): void =>
-                        setForm({ ...form, nickname: e.target.value })
-                      }
-                      onFocus={(e): void => {
-                        e.currentTarget.style.borderColor = "#00c853";
-                        e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0,200,83,0.15)";
-                      }}
-                      onBlur={(e): void => {
-                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    />
-                  </div>
                 </>
               )}
 

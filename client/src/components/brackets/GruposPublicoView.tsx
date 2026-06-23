@@ -132,50 +132,6 @@ function GruposPublicoView({ fase, nombrePorId }: GruposPublicoViewProps): JSX.E
                 </tbody>
               </table>
             </div>
-
-            {/* Partidos */}
-            <div className="px-3 py-3 border-t border-edge">
-              <p className="text-[9px] uppercase tracking-widest text-text-secondary mb-2">
-                Resultados
-              </p>
-              <div className="flex flex-col gap-1">
-                {grupo.partidos.map((partido) => {
-                  const resuelto = partido.resolvedAt !== null;
-                  const nombreA = nombre(partido.jugadorAId);
-                  const nombreB = nombre(partido.jugadorBId);
-                  return (
-                    <div
-                      key={partido.id}
-                      className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded text-[11px] border ${
-                        resuelto ? "border-edge bg-white/3" : "border-edge/30 text-text-secondary"
-                      }`}
-                    >
-                      <span
-                        className={`truncate flex-1 ${
-                          resuelto && partido.winnerId === partido.jugadorAId
-                            ? "text-emerald-300 font-semibold"
-                            : "text-white"
-                        }`}
-                      >
-                        {nombreA}
-                      </span>
-                      <span className="font-mono font-bold text-white shrink-0">
-                        {resuelto ? `${partido.scoreA} - ${partido.scoreB}` : "vs"}
-                      </span>
-                      <span
-                        className={`truncate flex-1 text-right ${
-                          resuelto && partido.winnerId === partido.jugadorBId
-                            ? "text-emerald-300 font-semibold"
-                            : "text-white"
-                        }`}
-                      >
-                        {nombreB}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         ))}
       </div>

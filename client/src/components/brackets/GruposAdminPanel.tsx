@@ -4,11 +4,10 @@ import {
   generarFaseGrupos,
   cerrarFaseGrupos,
   reiniciarFaseGrupos,
-  registrarResultadoGrupo,
 } from "../../services/grupos";
 import { getJugadoresPublico } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
-import type { FaseGruposConGrupos, Grupo, PartidoGrupo } from "@shared/types/grupos";
+import type { FaseGruposConGrupos } from "@shared/types/grupos";
 
 interface GruposAdminPanelProps {
   juego: string;
@@ -16,18 +15,9 @@ interface GruposAdminPanelProps {
   onFaseCerrada: () => void; // callback para que el panel padre recargue el bracket
 }
 
-interface PartidoModal {
-  partido: PartidoGrupo;
-  nombreA: string;
-  nombreB: string;
-}
-
 function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps): JSX.Element {
   const [fase, setFase] = useState<FaseGruposConGrupos | null | undefined>(undefined);
   const [nombrePorId, setNombrePorId] = useState<Record<string, string>>({});
-  const [modal, setModal] = useState<PartidoModal | null>(null);
-  const [scoreA, setScoreA] = useState<string>("");
-  const [scoreB, setScoreB] = useState<string>("");
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState<"reiniciar" | "cerrar" | null>(null);
@@ -97,38 +87,6 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
     }
   }
 
-  function abrirModal(partido: PartidoGrupo, grupo: Grupo): void {
-    if (fase?.estado === "FINALIZADA") return;
-    setModal({
-      partido,
-      nombreA: nombre(partido.jugadorAId),
-      nombreB: nombre(partido.jugadorBId),
-    });
-    setScoreA(partido.scoreA !== null ? String(partido.scoreA) : "");
-    setScoreB(partido.scoreB !== null ? String(partido.scoreB) : "");
-    void grupo;
-  }
-
-  async function handleRegistrarResultado(): Promise<void> {
-    if (!modal) return;
-    const sA = parseInt(scoreA, 10);
-    const sB = parseInt(scoreB, 10);
-    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) {
-      setError("Introduce marcadores válidos (≥ 0)");
-      return;
-    }
-    setCargando(true);
-    setError(null);
-    try {
-      const nuevaFase = await registrarResultadoGrupo(modal.partido.id, { scoreA: sA, scoreB: sB }, token);
-      setFase(nuevaFase);
-      setModal(null);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error registrando resultado");
-    } finally {
-      setCargando(false);
-    }
-  }
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -351,108 +309,8 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
                 </tbody>
                 </table>
               </div>
-
-              {/* Partidos */}
-              <div className="px-4 py-3 border-t border-edge">
-                <p className="text-[10px] uppercase tracking-widest text-text-secondary mb-2">
-                  Partidos
-                </p>
-                <div className="flex flex-col gap-1.5">
-                  {grupo.partidos.map((partido) => {
-                    const resuelto = partido.resolvedAt !== null;
-                    const clickable = fase.estado !== "FINALIZADA";
-                    return (
-                      <button
-                        key={partido.id}
-                        type="button"
-                        onClick={() => clickable && abrirModal(partido, grupo)}
-                        className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs border transition-colors duration-200 text-left w-full ${
-                          resuelto
-                            ? "border-edge bg-white/5"
-                            : "border-primary/30 bg-primary/5 hover:bg-primary/10"
-                        } ${clickable ? "cursor-pointer" : "cursor-default"}`}
-                      >
-                        <span className={`truncate ${resuelto ? "text-text-secondary" : "text-white"}`}>
-                          {nombre(partido.jugadorAId)}
-                        </span>
-                        <span className="font-mono font-bold text-white shrink-0">
-                          {resuelto
-                            ? `${partido.scoreA} - ${partido.scoreB}`
-                            : "vs"}
-                        </span>
-                        <span className={`truncate text-right ${resuelto ? "text-text-secondary" : "text-white"}`}>
-                          {nombre(partido.jugadorBId)}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Modal de resultado */}
-      {modal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-bg-card border border-edge rounded-xl p-6 w-full max-w-sm flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-white text-sm uppercase tracking-wide">
-                Registrar resultado
-              </h3>
-              <button
-                type="button"
-                onClick={() => setModal(null)}
-                className="text-text-secondary hover:text-white transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Jugador A */}
-              <div className="flex-1 text-center">
-                <p className="text-white text-xs font-semibold truncate">{modal.nombreA}</p>
-                <input
-                  type="number"
-                  min={0}
-                  value={scoreA}
-                  onChange={(e) => setScoreA(e.target.value)}
-                  className="mt-2 w-full text-center text-2xl font-black bg-bg-base border border-edge rounded-lg py-2 text-white focus:border-primary outline-none"
-                  placeholder="0"
-                />
-              </div>
-
-              <span className="text-text-secondary font-bold text-lg shrink-0">vs</span>
-
-              {/* Jugador B */}
-              <div className="flex-1 text-center">
-                <p className="text-white text-xs font-semibold truncate">{modal.nombreB}</p>
-                <input
-                  type="number"
-                  min={0}
-                  value={scoreB}
-                  onChange={(e) => setScoreB(e.target.value)}
-                  className="mt-2 w-full text-center text-2xl font-black bg-bg-base border border-edge rounded-lg py-2 text-white focus:border-primary outline-none"
-                  placeholder="0"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-red-400 text-xs">{error}</p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleRegistrarResultado}
-              disabled={cargando}
-              className="w-full py-3 rounded-lg font-bold text-sm bg-primary text-black hover:bg-primary/80 transition-colors disabled:opacity-50"
-            >
-              {cargando ? "Guardando…" : "Guardar resultado"}
-            </button>
-          </div>
         </div>
       )}
     </div>

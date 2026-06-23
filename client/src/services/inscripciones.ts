@@ -34,6 +34,7 @@ export function eliminarJugador(id: string, token: string): Promise<void> {
 export interface JugadorPublico {
   id: string;
   nombreCompleto: string;
+  juego: Juego;
 }
 
 export function getJugadoresPublico(): Promise<JugadorPublico[]> {

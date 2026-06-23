@@ -138,6 +138,7 @@ function BracketPublicoPanel({ juego }: BracketPublicoPanelProps): JSX.Element {
   const [bracket, setBracket] = useState<BracketConPartidos | null | undefined>(undefined);
   const [fase, setFase] = useState<FaseGruposConGrupos | null | undefined>(undefined);
   const [jugadoresPorId, setJugadoresPorId] = useState<Record<string, string>>({});
+  const [totalInscritos, setTotalInscritos] = useState<number | null>(null);
   const [showSwipeHint, setShowSwipeHint] = useState<boolean>(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -177,9 +178,10 @@ function BracketPublicoPanel({ juego }: BracketPublicoPanelProps): JSX.Element {
         const mapa: Record<string, string> = {};
         for (const j of lista) mapa[j.id] = j.nombreCompleto;
         setJugadoresPorId(mapa);
+        setTotalInscritos(lista.filter((j): boolean => j.juego === juego).length);
       })
       .catch((): void => undefined);
-  }, []);
+  }, [juego]);
 
   // Ocultar el hint de swipe cuando el usuario mueva el scroll
   useEffect((): (() => void) => {
@@ -192,6 +194,11 @@ function BracketPublicoPanel({ juego }: BracketPublicoPanelProps): JSX.Element {
 
   const juegoLabel = juego === "FC25" ? "FC 25" : "Call of Duty: BO2";
   const juegoEmoji = juego === "FC25" ? "⚽" : "🔫";
+  const formatoLabel =
+    juego === "FC25"
+      ? "Grupos (4 → 2) y después Eliminación Simple"
+      : "Grupos (3 → 1) y después Eliminación Doble";
+  const juegoCompleto = juego === "FC25" ? "EA Sports FC 25" : "Call of Duty: Black Ops 2";
 
   const upperPartidos = bracket?.partidos.filter((p): boolean => p.lado !== "LOSERS") ?? [];
   const lowerPartidos = bracket?.partidos.filter((p): boolean => p.lado === "LOSERS") ?? [];
@@ -212,6 +219,36 @@ function BracketPublicoPanel({ juego }: BracketPublicoPanelProps): JSX.Element {
         <p className="text-text-secondary text-xs">
           Actualización automática cada 30 s
         </p>
+      </div>
+
+      {/* Tarjeta de información del torneo */}
+      <div className="bg-bg-card border border-edge rounded-xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-8 flex-1">
+          <div>
+            <dt className="text-[10px] uppercase tracking-widest text-text-secondary">Jugadores</dt>
+            <dd className="text-white font-semibold">{totalInscritos ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-[10px] uppercase tracking-widest text-text-secondary">Formato</dt>
+            <dd className="text-white font-semibold">{formatoLabel}</dd>
+          </div>
+          <div>
+            <dt className="text-[10px] uppercase tracking-widest text-text-secondary">Juego</dt>
+            <dd className="text-white font-semibold">{juegoCompleto}</dd>
+          </div>
+        </dl>
+        <div className="flex items-center gap-2 shrink-0">
+          <div
+            className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-black"
+            style={{ background: "linear-gradient(135deg, #00ff87, #00c853)", color: "#000" }}
+          >
+            S
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-text-secondary">Organizado por</p>
+            <p className="text-primary font-semibold text-sm">SENA Gamer</p>
+          </div>
+        </div>
       </div>
 
       {/* Cargando */}

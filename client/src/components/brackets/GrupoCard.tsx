@@ -117,49 +117,51 @@ function GrupoCard({ grupo, juego, estadoFase, nombre, onPartidoClick }: GrupoCa
 
           {/* Tabla de posiciones */}
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-edge text-text-secondary">
-                  <th className="text-left px-4 py-2 font-medium">#</th>
-                  <th className="text-left px-2 py-2 font-medium">
+                  <th className="text-left px-4 py-3 font-bold uppercase text-[11px] tracking-wide">Rango</th>
+                  <th className="text-left px-3 py-3 font-bold uppercase text-[11px] tracking-wide">
                     {juego === "FC25" ? "Jugador" : "Equipo"}
                   </th>
-                  <th className="px-2 py-2 font-medium">PJ</th>
-                  <th className="px-2 py-2 font-medium">PG</th>
-                  <th className="px-2 py-2 font-medium">PE</th>
-                  <th className="px-2 py-2 font-medium">PP</th>
-                  <th className="px-2 py-2 font-medium">DG</th>
-                  <th className="px-2 py-2 font-medium text-primary">Pts</th>
-                  <th className="px-2 py-2 font-medium">Forma</th>
+                  <th className="px-3 py-3 font-bold uppercase text-[11px] tracking-wide">Partido G-P-E</th>
+                  <th className="px-3 py-3 font-bold uppercase text-[11px] tracking-wide">DG</th>
+                  <th className="px-3 py-3 font-bold uppercase text-[11px] tracking-wide text-primary">Pts</th>
+                  <th className="px-3 py-3 font-bold uppercase text-[11px] tracking-wide">Historial del partido</th>
                 </tr>
               </thead>
               <tbody>
                 {grupo.participantes.map((p, idx) => {
                   const clasifica = idx < clasificadosCount && estadoFase !== "PENDIENTE";
+                  const dg = p.gf - p.gc;
                   const historial = grupo.partidos
                     .filter((m) => m.jugadorAId === p.inscripcionId || m.jugadorBId === p.inscripcionId)
                     .map((m) => resultadoDe(m, p.inscripcionId))
                     .filter((r): r is "W" | "T" | "L" => r !== null)
                     .slice(-3);
                   return (
-                    <tr key={p.id} className={`border-b border-edge/50 ${clasifica ? "bg-emerald-900/10" : ""}`}>
-                      <td className="px-4 py-2 text-text-secondary">
-                        {clasifica ? <span className="text-emerald-400 font-bold">{idx + 1}</span> : idx + 1}
+                    <tr
+                      key={p.id}
+                      className={`border-b border-edge/40 ${
+                        idx % 2 === 0 ? "bg-white/[0.02]" : ""
+                      } ${clasifica ? "bg-emerald-900/10" : ""}`}
+                    >
+                      <td className="px-4 py-3 text-text-secondary font-semibold">
+                        {clasifica ? <span className="text-emerald-400">{idx + 1}</span> : idx + 1}
                       </td>
-                      <td className="px-2 py-2 text-white font-medium">
-                        <span className="truncate block max-w-[120px]">
+                      <td className="px-3 py-3 text-white font-semibold">
+                        <span className="truncate block max-w-[140px]">
                           {p.nombreCompleto ?? nombre(p.inscripcionId)}
                         </span>
                       </td>
-                      <td className="px-2 py-2 text-center text-text-secondary">{p.pj}</td>
-                      <td className="px-2 py-2 text-center text-emerald-400">{p.pg}</td>
-                      <td className="px-2 py-2 text-center text-text-secondary">{p.pe}</td>
-                      <td className="px-2 py-2 text-center text-red-400">{p.pp}</td>
-                      <td className="px-2 py-2 text-center text-text-secondary">
-                        {p.gf - p.gc >= 0 ? `+${p.gf - p.gc}` : p.gf - p.gc}
+                      <td className="px-3 py-3 text-center text-text-secondary font-mono">
+                        {p.pg} - {p.pp} - {p.pe}
                       </td>
-                      <td className="px-2 py-2 text-center font-bold text-white">{p.puntos}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-3 py-3 text-center text-text-secondary">
+                        {dg >= 0 ? `+${dg}` : dg}
+                      </td>
+                      <td className="px-3 py-3 text-center font-bold text-white">{p.puntos}</td>
+                      <td className="px-3 py-3">
                         <div className="flex items-center justify-center gap-1">
                           {historial.length === 0 ? (
                             <span className="text-text-secondary">—</span>
@@ -167,7 +169,7 @@ function GrupoCard({ grupo, juego, estadoFase, nombre, onPartidoClick }: GrupoCa
                             historial.map((r, i) => (
                               <span
                                 key={i}
-                                className={`w-4 h-4 rounded-sm text-[9px] font-bold flex items-center justify-center ${RESULTADO_ESTILO[r]}`}
+                                className={`w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center ${RESULTADO_ESTILO[r]}`}
                               >
                                 {r}
                               </span>

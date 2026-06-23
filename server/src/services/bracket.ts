@@ -294,7 +294,7 @@ export async function generarBracket(
       })),
     });
     return creado;
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 
   return { id: bracket.id, juego: bracket.juego };
 }
@@ -321,7 +321,7 @@ export async function reiniciarBracket(juego: string): Promise<void> {
   await prisma.$transaction(async (tx) => {
     await tx.partido.deleteMany({ where: { bracketId: bracket.id } });
     await tx.bracket.delete({ where: { id: bracket.id } });
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 }
 
 export async function getBracket(
@@ -445,5 +445,5 @@ export async function avanzarGanador(
         : null;
 
     return { partido: actualizado, campeonId };
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 }

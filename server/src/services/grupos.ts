@@ -141,7 +141,7 @@ export async function generarFaseGrupos(
     }
 
     return nuevaFase;
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 
   return { id: fase.id };
 }
@@ -288,7 +288,7 @@ export async function registrarResultadoPartidoGrupo(
       where: { id: fase!.id },
       data: { estado: nuevoEstado },
     });
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 }
 
 interface StatsDelta {
@@ -383,7 +383,7 @@ export async function cerrarFaseGrupos(juego: string): Promise<string[]> {
       where: { id: fase.id },
       data: { estado: "FINALIZADA" },
     });
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 
   return clasificadosIds;
 }
@@ -404,5 +404,5 @@ export async function reiniciarFaseGrupos(juego: string): Promise<void> {
     await tx.grupoParticipante.deleteMany({ where: { grupoId: { in: grupoIds } } });
     await tx.grupo.deleteMany({ where: { faseId: fase.id } });
     await tx.faseGrupos.delete({ where: { id: fase.id } });
-  });
+  }, { timeout: 20_000, maxWait: 10_000 });
 }

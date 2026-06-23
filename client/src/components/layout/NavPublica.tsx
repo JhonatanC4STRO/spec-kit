@@ -8,6 +8,7 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
+  { label: "Inicio", to: "/home", emoji: "🏠" },
   { label: "Inscripción", to: "/", emoji: "✍️" },
   { label: "Bracket FC 25", to: "/bracket/fc25", emoji: "⚽" },
   { label: "Bracket COD BO2", to: "/bracket/cod-bo2", emoji: "🔫" },
@@ -29,7 +30,7 @@ function NavPublica(): JSX.Element {
       {/* Barra principal */}
       <div className="flex items-center justify-between w-full">
         {/* Logo / marca */}
-        <div className="flex items-center gap-2">
+        <Link to="/home" className="flex items-center gap-2">
           <div
             className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-black"
             style={{ background: "linear-gradient(135deg, #00c853, #00e676)", color: "#000" }}
@@ -39,7 +40,7 @@ function NavPublica(): JSX.Element {
           <span className="font-bold text-white text-sm tracking-wide hidden sm:inline">
             SENA <span style={{ color: "#00c853" }}>GAMER</span>
           </span>
-        </div>
+        </Link>
 
         {/* Links desktop */}
         <nav className="hidden md:flex items-center gap-1">

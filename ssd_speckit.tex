@@ -1,0 +1,599 @@
+\documentclass[12pt, a4paper]{report}
+
+% ─── Paquetes ───────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{mdframed}
+\usepackage{float}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+
+% ─── Geometría ──────────────────────────────────────────────────────────────
+\geometry{top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm}
+
+% ─── Colores ────────────────────────────────────────────────────────────────
+\definecolor{gris}{RGB}{80,80,80}
+\definecolor{grisCaja}{RGB}{245,245,245}
+\definecolor{negro}{RGB}{20,20,20}
+\definecolor{linea}{RGB}{180,180,180}
+\definecolor{codigofondo}{RGB}{248,248,248}
+
+% ─── Código ─────────────────────────────────────────────────────────────────
+\lstset{
+  backgroundcolor=\color{codigofondo},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{linea},
+  xleftmargin=8pt,
+  xrightmargin=8pt,
+  showstringspaces=false,
+  tabsize=2
+}
+
+% ─── Caja de nota ───────────────────────────────────────────────────────────
+\newmdenv[
+  linecolor=linea,
+  backgroundcolor=grisCaja,
+  linewidth=1pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=8pt,
+  innerbottommargin=8pt,
+  skipabove=8pt,
+  skipbelow=8pt
+]{notacaja}
+
+% ─── Encabezado ─────────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Spec-Driven Development con Spec Kit}}
+\fancyhead[R]{\small\textit{Jhonatan Castro}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── Títulos ─────────────────────────────────────────────────────────────────
+\titleformat{\chapter}[block]
+  {\Large\bfseries}{\thechapter.}{10pt}{}
+  [\vspace{4pt}\rule{\textwidth}{0.4pt}]
+\titleformat{\section}{\large\bfseries}{\thesection}{8pt}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{6pt}{}
+
+\hypersetup{colorlinks=true,linkcolor=negro,urlcolor=gris,citecolor=gris}
+
+% ════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── Portada ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{3cm}
+  {\Large\bfseries Spec-Driven Development}\\[0.4cm]
+  {\large\bfseries Aprendizaje con GitHub Spec Kit}\\[2cm]
+  \rule{\textwidth}{0.4pt}\\[0.5cm]
+  {\normalsize
+    Documentaci\'on del proceso de aprendizaje: metodolog\'ia SDD,\\
+    herramienta Spec Kit y construcci\'on de un Sistema de Gesti\'on\\
+    de Torneos como proyecto de pr\'actica.
+  }\\[0.4cm]
+  \rule{\textwidth}{0.4pt}
+  \vspace{2cm}
+  \begin{tabular}{ll}
+    \textbf{Autor}   & Jhonatan Castro \\[4pt]
+    \textbf{GitHub}  & JhonatanC4STRO \\[4pt]
+    \textbf{Fecha}   & Junio 2026 \\[4pt]
+    \textbf{Agente}  & Claude Code (Sonnet 4.6) \\
+  \end{tabular}
+  \vfill
+  {\small Este documento fue generado a partir de una sesi\'on real de aprendizaje.}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Introducci\'on}
+
+\section{Contexto}
+
+Este documento registra una sesi\'on de aprendizaje orientada a comprender
+el \textbf{Spec-Driven Development (SDD)} como alternativa al denominado
+\textit{vibe coding}: la pr\'actica de generar c\'odigo mediante prompts
+improvisados a un agente de IA sin planificaci\'on previa.
+
+El objetivo fue doble: entender la metodolog\'ia SDD a nivel conceptual,
+y aplicarla de forma pr\'actica utilizando \textbf{GitHub Spec Kit} como
+herramienta, \textbf{Claude Code} como agente de implementaci\'on, y un
+\textit{Sistema de Gesti\'on de Torneos} como proyecto de pr\'actica.
+
+\section{Objetivos de aprendizaje}
+
+\begin{enumerate}[leftmargin=*, label=\arabic{*}.]
+  \item Comprender la diferencia entre SDD y vibe coding.
+  \item Distinguir entre la metodolog\'ia (SDD) y la herramienta (Spec Kit).
+  \item Ejecutar el flujo completo: \texttt{constitution} $\to$
+        \texttt{specify} $\to$ \texttt{plan} $\to$ \texttt{tasks}
+        $\to$ \texttt{implement}.
+  \item Evaluar alternativas a Spec Kit (GSD, BMAD, Kiro, OpenSpec).
+\end{enumerate}
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Marco Conceptual}
+
+\section{?`Qu\'e es el Spec-Driven Development?}
+
+El \textbf{Spec-Driven Development (SDD)} es una metodolog\'ia de desarrollo
+de software que trata las especificaciones como artefactos de primera clase.
+En lugar de comenzar a generar c\'odigo inmediatamente, el desarrollador
+define con precisi\'on \textit{qu\'e} debe construirse antes de que el agente
+toque una sola l\'inea de c\'odigo.
+
+\begin{notacaja}
+  \textbf{Principio fundamental:} La especificaci\'on es la fuente de verdad.
+  El c\'odigo es el \'ultimo paso, no el primero.
+\end{notacaja}
+
+\section{Vibe Coding vs.\ SDD}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Aspecto} & \textbf{Vibe Coding} & \textbf{SDD} \\
+\midrule
+Punto de partida & Prompt improvisado & Especificaci\'on detallada \\
+Decisiones       & Las toma el agente & Las toma el desarrollador \\
+Revisi\'on       & Al final (si ocurre) & En cada fase \\
+Fuente de verdad & El c\'odigo generado & La especificaci\'on \\
+Resultado        & Impredecible & Trazable \\
+\bottomrule
+\end{tabularx}
+\caption{Comparaci\'on entre Vibe Coding y SDD}
+\end{table}
+
+\section{SDD vs.\ Spec Kit: una distinci\'on cr\'itica}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+& \textbf{SDD} & \textbf{Spec Kit} \\
+\midrule
+Naturaleza & Metodolog\'ia / filosof\'ia & Herramienta (CLI + templates) \\
+Origen     & Concepto independiente & GitHub (open source, MIT) \\
+Requisito  & Ninguno & Python 3.11+ \\
+Analog\'ia & Scrum & Jira \\
+\bottomrule
+\end{tabularx}
+\caption{SDD como metodolog\'ia vs.\ Spec Kit como herramienta}
+\end{table}
+
+Es posible practicar SDD sin Spec Kit, de la misma manera que es posible
+gestionar un proyecto \'agil sin Jira. La herramienta implementa la
+metodolog\'ia; no la sustituye.
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{GitHub Spec Kit}
+
+\section{Descripci\'on general}
+
+GitHub Spec Kit es un conjunto de herramientas open source (MIT License)
+que implementa el flujo SDD para agentes de IA. Alcanz\'o m\'as de 93.000
+estrellas en GitHub hacia mayo de 2026, con soporte para m\'as de 30 agentes
+incluyendo Claude Code, GitHub Copilot, Cursor y Gemini CLI.
+
+\section{Arquitectura de archivos}
+
+Al instalar Spec Kit en un proyecto, se genera la siguiente estructura:
+
+\begin{lstlisting}
+proyecto/
+|-- constitution.md          <- ADN del proyecto (escrito por el dev)
+|-- .claude/
+|   `-- skills/
+|       |-- speckit-constitution/
+|       |-- speckit-specify/
+|       |-- speckit-plan/
+|       |-- speckit-tasks/
+|       |-- speckit-implement/
+|       `-- speckit-analyze/
+|-- .specify/
+|   |-- templates/
+|   `-- memory/
+`-- specs/
+    |-- 001-nombre-feature/
+    |   |-- spec.md
+    |   |-- plan.md
+    |   |-- tasks.md
+    |   |-- research.md
+    |   |-- data-model.md
+    |   `-- contracts/
+    `-- 002-nombre-feature/
+\end{lstlisting}
+
+\section{El flujo de comandos}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  nodo/.style={
+    rectangle, rounded corners=4pt,
+    minimum width=2.8cm, minimum height=1cm,
+    draw=gris, fill=grisCaja,
+    font=\small\ttfamily, align=center
+  },
+  flecha/.style={-Stealth, thick, color=gris}
+]
+\node[nodo] (c) {constitution};
+\node[nodo, right=0.9cm of c] (s) {specify};
+\node[nodo, right=0.9cm of s] (p) {plan};
+\node[nodo, right=0.9cm of p] (t) {tasks};
+\node[nodo, right=0.9cm of t] (i) {implement};
+
+\draw[flecha] (c)--(s);
+\draw[flecha] (s)--(p);
+\draw[flecha] (p)--(t);
+\draw[flecha] (t)--(i);
+
+\node[below=0.45cm of c, font=\tiny, text=gris, align=center] {ADN del\\proyecto};
+\node[below=0.45cm of s, font=\tiny, text=gris, align=center] {Define la\\feature};
+\node[below=0.45cm of p, font=\tiny, text=gris, align=center] {Plan\\t\'ecnico};
+\node[below=0.45cm of t, font=\tiny, text=gris, align=center] {Tareas\\peque\~nas};
+\node[below=0.45cm of i, font=\tiny, text=gris, align=center] {Genera\\c\'odigo};
+\end{tikzpicture}
+\caption{Flujo de comandos en Spec Kit (ejecutados en Claude Code)}
+\end{figure}
+
+\section{El archivo \texttt{constitution.md}}
+
+El \texttt{constitution.md} es el artefacto m\'as importante. Es el contrato
+entre el desarrollador y el agente: define el stack, los principios
+inamovibles, la estructura de carpetas, las convenciones de c\'odigo y
+los patrones prohibidos. El agente lo respeta en cada decisi\'on.
+
+\begin{lstlisting}[caption={Ejemplo de constitution.md}]
+# Constitution -- Sistema de Gestion de Torneos
+
+## Stack
+- React (Vite) -- frontend
+- Node.js + Express -- backend/API
+- PostgreSQL + Prisma -- base de datos
+- JWT manual con bcrypt -- autenticacion del admin
+- Tailwind CSS -- estilos
+
+## Principios inamovibles
+- Nunca usar `any` en TypeScript
+- Toda funcion debe tener su tipo de retorno explicito
+- No instalar librerias sin aprobar primero
+- Toda feature debe tener su spec antes de codear
+
+## Estructura de carpetas
+/client  -> React (frontend)
+/server  -> Node.js + Express (backend)
+
+## Patrones prohibidos
+- No mezclar logica de negocio en componentes de UI
+- No exponer contrasenas ni tokens en respuestas de la API
+- No hardcodear IDs ni valores magicos
+\end{lstlisting}
+
+\section{Participaci\'on activa del desarrollador}
+
+Un error frecuente es creer que el flujo SDD es autom\'atico. No lo es.
+Cada comando requiere revisi\'on y aprobaci\'on antes de continuar al
+siguiente:
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Comando} & \textbf{Qu\'e revisa el desarrollador} \\
+\midrule
+\texttt{/speckit-constitution} & Que el agente interpret\'o bien el ADN \\
+\texttt{/speckit-specify}      & Que la spec captura todos los casos de uso \\
+\texttt{/speckit-plan}         & Que las decisiones arquitect\'onicas son correctas \\
+\texttt{/speckit-tasks}        & Que las tareas son peque\~nas y testeables \\
+\texttt{/speckit-implement}    & Que el c\'odigo generado cumple la spec \\
+\bottomrule
+\end{tabularx}
+\caption{Responsabilidad del desarrollador en cada fase}
+\end{table}
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Proyecto de Pr\'actica: Sistema de Gesti\'on de Torneos}
+
+\section{Descripci\'on}
+
+Como proyecto de pr\'actica se eligi\'o un \textbf{Sistema de Gesti\'on de
+Torneos} para dos juegos: FC~25 y Call of Duty Black Ops~2.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Componente} & \textbf{Tecnolog\'ia} \\
+\midrule
+Frontend      & React + Vite + TypeScript + Tailwind CSS \\
+Backend       & Node.js + Express + TypeScript \\
+Base de datos & PostgreSQL + Prisma ORM \\
+Autenticaci\'on & JWT manual + bcrypt \\
+\bottomrule
+\end{tabularx}
+\caption{Stack tecnol\'ogico del proyecto de pr\'actica}
+\end{table}
+
+\section{Features especificadas}
+
+El sistema se dividi\'o en 5 features procesadas de forma independiente:
+
+\begin{enumerate}[leftmargin=*, label=\textbf{F\arabic{*}.}]
+  \item \textbf{Inscripci\'on al torneo} --- Formulario p\'ublico con nombre
+        completo, nickname, n\'umero de documento, n\'umero de ficha, nombre
+        de formaci\'on y selecci\'on de juego. Validaci\'on de duplicados por
+        nickname y documento dentro del mismo juego.
+  \item \textbf{Login del administrador} --- Autenticaci\'on con email y
+        contrase\~na. Token JWT con duraci\'on de 8 horas. Mensajes de error
+        en caso de credenciales inv\'alidas.
+  \item \textbf{Panel admin: gesti\'on de inscritos} --- Listado por juego,
+        eliminaci\'on de jugadores, apertura y cierre de inscripciones.
+  \item \textbf{Generaci\'on del bracket} --- FC~25 usa single-elimination;
+        Call of Duty usa double-elimination. Asignaci\'on aleatoria de
+        posiciones. Estructura inmutable una vez generada.
+  \item \textbf{Registro de resultados} --- Ganador, puntos, empate y penales.
+        Avance autom\'atico del ganador. Correcci\'on permitida solo si el
+        partido siguiente a\'un no tiene resultado.
+\end{enumerate}
+
+\section{Flujo de actores}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  actor/.style={
+    rectangle, rounded corners=3pt,
+    minimum width=2.6cm, minimum height=0.8cm,
+    draw=gris, fill=grisCaja,
+    font=\small, align=center
+  },
+  accion/.style={
+    rectangle,
+    minimum width=4.5cm, minimum height=0.75cm,
+    draw=gris, font=\small, align=center
+  },
+  flecha/.style={-Stealth, color=gris}
+]
+
+\node[actor] (jugador) {Jugador P\'ublico};
+\node[accion, right=1.2cm of jugador]           (f1) {Formulario de inscripci\'on};
+\node[accion, below=0.5cm of f1]                (f2) {Validaci\'on de datos};
+\node[accion, below=0.5cm of f2]                (f3) {Guardar en PostgreSQL};
+
+\node[actor, below=2.2cm of jugador] (admin) {Administrador};
+\node[accion, right=1.2cm of admin]             (a1) {Login (JWT)};
+\node[accion, below=0.5cm of a1]                (a2) {Ver inscritos por juego};
+\node[accion, below=0.5cm of a2]                (a3) {Generar bracket};
+\node[accion, below=0.5cm of a3]                (a4) {Registrar resultados};
+\node[accion, below=0.5cm of a4]                (a5) {Avance autom\'atico};
+
+\draw[flecha] (jugador)--(f1);
+\draw[flecha] (f1)--(f2);
+\draw[flecha] (f2)--(f3);
+\draw[flecha] (admin)--(a1);
+\draw[flecha] (a1)--(a2);
+\draw[flecha] (a2)--(a3);
+\draw[flecha] (a3)--(a4);
+\draw[flecha] (a4)--(a5);
+\end{tikzpicture}
+\caption{Flujo de actores del Sistema de Gesti\'on de Torneos}
+\end{figure}
+
+\section{Formato de brackets por juego}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Juego} & \textbf{Formato} \\
+\midrule
+FC 25 & Single-elimination: el que pierde queda eliminado \\
+Call of Duty Black Ops 2 & Double-elimination: el que pierde va al bracket de perdedores; se elimina al perder dos veces \\
+\bottomrule
+\end{tabularx}
+\caption{Formatos de bracket por juego}
+\end{table}
+
+\section{Estructura de archivos generada}
+
+Al completar el flujo, la estructura del proyecto result\'o as\'i:
+
+\begin{lstlisting}
+sistema-torneos/
+|-- server/
+|   |-- src/
+|   |   |-- controllers/
+|   |   |   |-- auth.controller.ts
+|   |   |   |-- inscripciones.controller.ts
+|   |   |   |-- admin-inscripciones.controller.ts
+|   |   |   `-- admin-bracket.controller.ts
+|   |   |-- routes/
+|   |   |-- services/
+|   |   `-- middleware/
+|   `-- prisma/
+|       |-- schema.prisma
+|       `-- migrations/      <- 3 migraciones aplicadas
+|-- client/
+|   `-- src/
+|       |-- components/
+|       |   |-- admin/
+|       |   |-- brackets/
+|       |   `-- inscripcion/
+|       |-- pages/
+|       `-- services/
+|-- shared/
+|   `-- types/
+|       |-- auth.ts
+|       |-- bracket.ts
+|       `-- inscripcion.ts
+`-- specs/
+    |-- 001-inscripcion-torneo/
+    |-- 002-login-admin/
+    |-- 003-panel-admin-jugadores/
+    |-- 004-generar-bracket-torneo/
+    `-- 005-registrar-resultados-bracket/
+\end{lstlisting}
+
+Cada carpeta dentro de \texttt{specs/} contiene: \texttt{spec.md},
+\texttt{plan.md}, \texttt{tasks.md}, \texttt{research.md},
+\texttt{data-model.md} y una subcarpeta \texttt{contracts/}.
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Gesti\'on de Cambios en SDD}
+
+\section{Agregar una feature nueva}
+
+Cualquier funcionalidad nueva debe pasar por el flujo correspondiente
+antes de generar c\'odigo:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  nodo/.style={
+    rectangle, rounded corners=3pt,
+    minimum width=2.6cm, minimum height=0.85cm,
+    draw=gris, fill=grisCaja,
+    font=\small\ttfamily, align=center
+  },
+  flecha/.style={-Stealth, thick, color=gris}
+]
+\node[nodo] (s) {specify};
+\node[nodo, right=1cm of s] (p) {plan};
+\node[nodo, right=1cm of p] (t) {tasks};
+\node[nodo, right=1cm of t] (i) {implement};
+\draw[flecha] (s)--(p);
+\draw[flecha] (p)--(t);
+\draw[flecha] (t)--(i);
+\end{tikzpicture}
+\caption{Flujo completo para una feature nueva}
+\end{figure}
+
+\section{Pasos seg\'un el tipo de cambio}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Tipo de cambio} & \textbf{Pasos necesarios} \\
+\midrule
+Feature nueva compleja   & specify $\to$ plan $\to$ tasks $\to$ implement \\
+Feature nueva simple     & specify $\to$ tasks $\to$ implement \\
+Modificaci\'on peque\~na & specify $\to$ implement \\
+Correcci\'on de bug      & implement (describiendo el bug con precisi\'on) \\
+\bottomrule
+\end{tabularx}
+\caption{Pasos requeridos seg\'un el tipo de cambio}
+\end{table}
+
+\begin{notacaja}
+  \textbf{Regla fundamental:} Nunca se modifica el c\'odigo directamente
+  para agregar algo nuevo. El cambio nace en la spec, no en el c\'odigo.
+  Esta regla es lo que diferencia SDD del vibe coding.
+\end{notacaja}
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Alternativas a Spec Kit}
+
+\section{Panorama de herramientas SDD en 2026}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Herramienta} & \textbf{Complejidad} & \textbf{Mejor para} \\
+\midrule
+GitHub Spec Kit & Media & Aprendizaje, proyectos medianos, greenfield \\
+GSD             & Baja  & Solo dev, flujo diario r\'apido, Claude Code \\
+BMAD Method     & Alta  & Equipos grandes, proyectos enterprise \\
+OpenSpec        & Baja  & Proyectos existentes (brownfield) \\
+Amazon Kiro     & Media & Stacks AWS, IDE integrado con tier gratuito \\
+\bottomrule
+\end{tabularx}
+\caption{Comparaci\'on de herramientas SDD principales en 2026}
+\end{table}
+
+\section{Spec Kit vs.\ GSD}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Aspecto} & \textbf{Spec Kit} & \textbf{GSD} \\
+\midrule
+Ceremonia    & Alta --- m\'ultiples archivos por feature & Baja --- minimalista \\
+Velocidad    & M\'as lento, m\'as riguroso & M\'as r\'apido, m\'as pragm\'atico \\
+Archivos     & spec, plan, tasks, research por feature & Contexto en un flujo \'unico \\
+Ideal para   & Aprender SDD, proyectos complejos & Flujo diario, solo dev \\
+Integraci\'on & 30+ agentes & Claude Code, Gemini CLI \\
+\bottomrule
+\end{tabularx}
+\caption{Comparaci\'on directa: Spec Kit vs.\ GSD}
+\end{table}
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusiones y Pr\'oximos Pasos}
+
+\section{Aprendizajes obtenidos}
+
+\begin{enumerate}[leftmargin=*, label=\arabic{*}.]
+  \item \textbf{SDD invierte la relaci\'on con el agente.} El desarrollador
+        define qu\'e construir; el agente ejecuta bajo esas restricciones.
+  \item \textbf{El \texttt{constitution.md} es el artefacto m\'as valioso.}
+        Define el ADN del proyecto y persiste a lo largo de toda la
+        implementaci\'on.
+  \item \textbf{Cada fase requiere revisi\'on activa.} El flujo no es
+        autom\'atico. Aprobar sin leer equivale a vibe coding disfrazado.
+  \item \textbf{La spec por feature es la unidad de trabajo.} No se codea
+        sin spec. No se avanza al plan sin aprobar la spec.
+  \item \textbf{Los cambios nacen en la spec, no en el c\'odigo.}
+        Modificar el c\'odigo directamente rompe la trazabilidad.
+\end{enumerate}
+
+\section{Pr\'oximo paso: GSD}
+
+El siguiente paso es \textbf{GSD (Get Shit Done)}, el framework de
+meta-prompting y context engineering construido principalmente para
+Claude Code. GSD representa la versi\'on liviana del mismo principio SDD,
+orientada al flujo diario de un desarrollador individual.
+
+GSD ser\'a la herramienta utilizada en el desarrollo de \textbf{SABERHUB},
+el LMS open source en construcci\'on, dado que su bajo overhead ceremonial
+lo hace m\'as adecuado para iteraciones frecuentes en un proyecto de largo
+plazo.
+
+\vspace{1cm}
+
+\begin{notacaja}
+  \textbf{Conclusi\'on general:} El vibe coding resuelve el problema de
+  velocidad inicial a costa de la calidad sostenida. SDD, implementado
+  con Spec Kit o GSD, mantiene la velocidad en el largo plazo porque el
+  agente siempre tiene contexto preciso. La inversi\'on en la fase de
+  especificaci\'on se recupera ampliamente en la fase de implementaci\'on.
+\end{notacaja}
+
+\end{document}

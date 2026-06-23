@@ -1,0 +1,29 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{\numberline {1}Introducci\'on}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Contexto}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Objetivos de aprendizaje}{2}{section.1.2}%
+\contentsline {chapter}{\numberline {2}Marco Conceptual}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}?`Qu\'e es el Spec-Driven Development?}{3}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Vibe Coding vs.\ SDD}{3}{section.2.2}%
+\contentsline {section}{\numberline {2.3}SDD vs.\ Spec Kit: una distinci\'on cr\'itica}{3}{section.2.3}%
+\contentsline {chapter}{\numberline {3}GitHub Spec Kit}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Descripci\'on general}{5}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Arquitectura de archivos}{5}{section.3.2}%
+\contentsline {section}{\numberline {3.3}El flujo de comandos}{6}{section.3.3}%
+\contentsline {section}{\numberline {3.4}El archivo \texttt {constitution.md}}{6}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Participaci\'on activa del desarrollador}{6}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Proyecto de Pr\'actica: Sistema de Gesti\'on de Torneos}{8}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Descripci\'on}{8}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Features especificadas}{8}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Flujo de actores}{9}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Formato de brackets por juego}{9}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Estructura de archivos generada}{9}{section.4.5}%
+\contentsline {chapter}{\numberline {5}Gesti\'on de Cambios en SDD}{11}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Agregar una feature nueva}{11}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Pasos seg\'un el tipo de cambio}{11}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Alternativas a Spec Kit}{12}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Panorama de herramientas SDD en 2026}{12}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Spec Kit vs.\ GSD}{12}{section.6.2}%
+\contentsline {chapter}{\numberline {7}Conclusiones y Pr\'oximos Pasos}{13}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Aprendizajes obtenidos}{13}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Pr\'oximo paso: GSD}{13}{section.7.2}%

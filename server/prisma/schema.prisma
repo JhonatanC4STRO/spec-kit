@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Juego {
+  FC25
+  COD_BO2
+}
+
+model Inscripcion {
+  id                   String   @id @default(uuid())
+  nombreCompleto       String
+  nickname             String
+  nicknameNormalizado  String
+  juego                Juego
+  createdAt            DateTime @default(now())
+
+  @@unique([juego, nicknameNormalizado])
+}
+
+model EstadoInscripciones {
+  id        String   @id @default("global")
+  abierta   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+model Administrador {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+enum FormatoBracket {
+  SINGLE_ELIMINATION
+  DOUBLE_ELIMINATION
+}
+
+enum LadoBracket {
+  WINNERS
+  LOSERS
+}
+
+model Bracket {
+  id        String         @id @default(uuid())
+  juego     Juego          @unique
+  formato   FormatoBracket
+  createdAt DateTime       @default(now())
+  partidos  Partido[]
+}
+
+model Partido {
+  id               String       @id @default(uuid())
+  bracketId        String
+  bracket          Bracket      @relation(fields: [bracketId], references: [id])
+  ronda            Int
+  lado             LadoBracket?
+  jugadorAId       String?
+  jugadorBId       String?
+  scoreA           Int?
+  scoreB           Int?
+  penaltyScoreA    Int?
+  penaltyScoreB    Int?
+  winnerId         String?
+  nextMatchId      String?
+  nextLoserMatchId String?
+  resolvedAt       DateTime?
+}

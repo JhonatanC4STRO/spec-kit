@@ -29,11 +29,15 @@ cd spec-kit
 
 ## 2. Base de datos
 
-Crea una base de datos vacía en PostgreSQL, por ejemplo `torneo`:
+Hay dos formas de tener Postgres para desarrollo:
+
+**Opción A — Base de datos local:** crea una base vacía en tu Postgres local:
 
 ```sql
 CREATE DATABASE torneo;
 ```
+
+**Opción B — Base de datos compartida del equipo:** el proyecto usa una instancia de Postgres en un VPS compartido para que todos vean los mismos datos. Pide el `DATABASE_URL` completo a quien administra el VPS (no está en el repo por seguridad) y pégalo en tu `server/.env`. No se necesita crear ni migrar nada: el esquema ya está aplicado.
 
 ## 3. Backend (`server/`)
 

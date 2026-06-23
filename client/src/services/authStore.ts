@@ -1,13 +1,13 @@
-let tokenActual: string | null = null;
+const TOKEN_KEY = "admin_token";
 
 export function setToken(token: string): void {
-  tokenActual = token;
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function getToken(): string | null {
-  return tokenActual;
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function limpiarToken(): void {
-  tokenActual = null;
+  localStorage.removeItem(TOKEN_KEY);
 }

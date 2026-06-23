@@ -44,7 +44,7 @@ function GenerarBracketButton({
         onClick={(): void => {
           handleClick().catch((): void => undefined);
         }}
-        className="bg-primary text-black rounded px-4 py-2 disabled:opacity-50"
+        className="bg-primary text-black rounded px-4 py-2 font-semibold hover:brightness-110 transition-all duration-200 disabled:opacity-50"
       >
         Generar bracket de {juego}
       </button>

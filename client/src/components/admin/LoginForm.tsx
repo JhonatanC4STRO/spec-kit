@@ -31,34 +31,49 @@ function LoginForm({ onSuccess }: LoginFormProps): JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-sm">
-      <label className="flex flex-col gap-1">
-        Email
-        <input
-          type="email"
-          className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
-          value={email}
-          onChange={(e): void => setEmail(e.target.value)}
-        />
-      </label>
-      <label className="flex flex-col gap-1">
-        Contraseña
-        <input
-          type="password"
-          className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
-          value={password}
-          onChange={(e): void => setPassword(e.target.value)}
-        />
-      </label>
-      {error !== null && <p className="text-red-400">{error}</p>}
-      <button
-        type="submit"
-        disabled={enviando}
-        className="bg-primary text-black rounded px-4 py-2 disabled:opacity-50"
-      >
-        Ingresar
-      </button>
-    </form>
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="w-full max-w-sm bg-bg-card border border-edge rounded p-8">
+        <h1 className="text-2xl font-bold uppercase tracking-wide text-white mb-1">
+          Acceso Administrador
+        </h1>
+        <p className="text-text-secondary text-sm mb-6">
+          Ingresa tus credenciales para gestionar el torneo
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1 text-sm text-text-secondary">
+            Email
+            <input
+              type="email"
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2 focus:outline-none focus:border-primary transition-colors duration-200"
+              value={email}
+              onChange={(e): void => setEmail(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-text-secondary">
+            Contraseña
+            <input
+              type="password"
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2 focus:outline-none focus:border-primary transition-colors duration-200"
+              value={password}
+              onChange={(e): void => setPassword(e.target.value)}
+            />
+          </label>
+          {error !== null && (
+            <p className="text-red-400 text-sm border border-red-400/30 bg-red-400/10 rounded px-3 py-2">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={enviando}
+            className="bg-primary text-black rounded px-4 py-2 font-semibold hover:brightness-110 transition-all duration-200 disabled:opacity-50"
+          >
+            {enviando ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 

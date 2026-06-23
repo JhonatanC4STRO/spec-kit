@@ -14,7 +14,10 @@
     "strict": true,
     "noImplicitAny": true,
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../shared/*"],
+      "@g-loot/react-tournament-brackets": [
+        "./node_modules/@g-loot/react-tournament-brackets/dist/esm/index.d.ts"
+      ]
     }
   },
   "include": ["src"]

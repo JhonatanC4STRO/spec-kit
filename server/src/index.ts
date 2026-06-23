@@ -5,6 +5,7 @@ import adminInscripcionesRouter from "./routes/admin-inscripciones.routes";
 import adminBracketRouter from "./routes/admin-bracket.routes";
 import bracketsRouter from "./routes/brackets.routes";
 import partidosRouter from "./routes/partidos.routes";
+import { gruposPublicRouter, gruposAdminRouter } from "./routes/grupos.routes";
 import { requireAdmin } from "./middleware/auth.middleware";
 
 const app: Express = express();
@@ -14,6 +15,10 @@ app.use(express.json());
 app.use("/api", inscripcionesRouter);
 app.use("/api", authRouter);
 app.use("/api", bracketsRouter);
+// Fase de grupos — GET público
+app.use("/api", gruposPublicRouter);
+// Fase de grupos — acciones de admin
+app.use("/api/admin", requireAdmin, gruposAdminRouter);
 app.use("/api/admin", requireAdmin, adminInscripcionesRouter);
 app.use("/api/admin", requireAdmin, adminBracketRouter);
 app.use("/api/partidos", requireAdmin, partidosRouter);

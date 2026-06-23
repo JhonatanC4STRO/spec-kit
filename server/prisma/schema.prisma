@@ -15,16 +15,26 @@ enum Juego {
 model Inscripcion {
   id                   String   @id @default(uuid())
   nombreCompleto       String
-  nickname             String
-  nicknameNormalizado  String
+  nickname             String?
+  nicknameNormalizado  String?
+  documento            String?
   juego                Juego
   createdAt            DateTime @default(now())
+
+  // COD BO2 team fields
+  jugador1Nombre       String?
+  jugador2Nombre       String?
+  ficha                String?
+  programa             String?
+  correo               String?
+  telefono             String?
+  nickEquipo           String?
 
   @@unique([juego, nicknameNormalizado])
 }
 
 model EstadoInscripciones {
-  id        String   @id @default("global")
+  juego     Juego    @id
   abierta   Boolean  @default(true)
   updatedAt DateTime @updatedAt
 }
@@ -70,4 +80,67 @@ model Partido {
   nextMatchId      String?
   nextLoserMatchId String?
   resolvedAt       DateTime?
+}
+
+// ─── Fase de grupos ───────────────────────────────────────────────────────────
+
+enum EstadoFaseGrupos {
+  PENDIENTE   // grupos creados, sin resultados
+  EN_CURSO    // al menos un partido jugado
+  FINALIZADA  // todos los partidos jugados, clasificados determinados
+}
+
+model FaseGrupos {
+  id        String           @id @default(uuid())
+  juego     Juego            @unique
+  estado    EstadoFaseGrupos @default(PENDIENTE)
+  createdAt DateTime         @default(now())
+  grupos    Grupo[]
+}
+
+model Grupo {
+  id             String          @id @default(uuid())
+  faseId         String
+  fase           FaseGrupos      @relation(fields: [faseId], references: [id])
+  nombre         String          // "Grupo A", "Grupo B", …
+  participantes  GrupoParticipante[]
+  partidos       PartidoGrupo[]
+}
+
+model GrupoParticipante {
+  id             String  @id @default(uuid())
+  grupoId        String
+  grupo          Grupo   @relation(fields: [grupoId], references: [id])
+  inscripcionId  String  // referencia lógica a Inscripcion.id
+  puntos         Int     @default(0)
+  pj             Int     @default(0)  // partidos jugados
+  pg             Int     @default(0)  // ganados
+  pe             Int     @default(0)  // empatados
+  pp             Int     @default(0)  // perdidos
+  gf             Int     @default(0)  // goles a favor
+  gc             Int     @default(0)  // goles en contra
+  clasificado    Boolean @default(false)
+}
+
+model PartidoGrupo {
+  id          String    @id @default(uuid())
+  grupoId     String
+  grupo       Grupo     @relation(fields: [grupoId], references: [id])
+  jugadorAId  String    // inscripcionId
+  jugadorBId  String
+  scoreA      Int?
+  scoreB      Int?
+  winnerId    String?   // null si empataron
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// ─── Equipos COD BO2 ──────────────────────────────────────────────────────────
+
+model EquipoCod {
+  id         String   @id @default(uuid())
+  apodo      String   @unique  // nombre del equipo en el bracket
+  jugador1Id String   // Inscripcion.id (COD_BO2)
+  jugador2Id String   // Inscripcion.id (COD_BO2)
+  createdAt  DateTime @default(now())
 }

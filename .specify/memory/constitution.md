@@ -1,5 +1,30 @@
 <!--
 Sync Impact Report
+Version change: 2.2.0 → 2.3.0 (MINOR — excepción acotada agregada a principio existente)
+Modified principles: VI. Identidad Visual Gaming (se agrega excepción de
+  tipografía: Inter/sans-serif moderna permitida exclusivamente en la
+  landing pública nueva de 008-landing-fc26-style; Rajdhani sigue siendo
+  obligatoria en las 5 superficies cubiertas por 007-rediseno-visual-gaming
+  y en cualquier superficie futura no exceptuada explícitamente).
+Added principles: ninguno
+Added sections: ninguna
+Removed sections: ninguna
+Changes: resuelve la dependencia de gobernanza señalada por
+  008-landing-fc26-style/spec.md — el usuario pidió explícitamente Inter
+  para la nueva landing estilo EA Sports FC 26, en conflicto directo con el
+  mandato de Rajdhani de todo el sitio fijado en 2.2.0. Se acota el
+  principio con una excepción nominal (por feature/superficie), en vez de
+  relajar la regla general, para que el resto del sitio no pierda la
+  identidad tipográfica ya validada en 007.
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md (gate genérico, sin texto de
+     principios hardcodeado — no requiere cambios)
+  ✅ .specify/templates/spec-template.md (sin referencias a diseño visual)
+  ✅ .specify/templates/tasks-template.md (sin referencias a diseño visual)
+Follow-up TODOs: ninguno
+
+---
+Sync Impact Report (histórico)
 Version change: 2.1.0 → 2.2.0 (MINOR — nuevo principio agregado)
 Modified principles: ninguno
 Added principles: VI. Identidad Visual Gaming (fondo `#0a0a0a`, primario
@@ -106,7 +131,11 @@ base.
 ### VI. Identidad Visual Gaming
 Toda interfaz (pública y admin) MUST usar la paleta y tipografía de marca:
 fondo principal `#0a0a0a`, color primario de acción/acento `#00ff87` (verde
-neón), y Rajdhani como tipografía principal del texto. Las tarjetas y
+neón), y Rajdhani como tipografía principal del texto. **Excepción
+nominal**: la landing pública de `008-landing-fc26-style` MUST usar Inter
+(o sans-serif moderna equivalente) en lugar de Rajdhani, exclusivamente en
+esa superficie; esta excepción no se extiende a ninguna otra pantalla ni a
+features futuras salvo que se declare explícitamente aquí. Las tarjetas y
 contenedores de contenido (formularios, listados, bracket, tarjetas de
 resultado) MUST tener fondo oscuro diferenciado del fondo general (`#111111`
 o `#1a1a1a`), con bordes sutiles (`#2a2a2a`) que las delimiten. Los estados
@@ -164,4 +193,4 @@ Toda PR o revisión de código MUST verificar cumplimiento de los principios
 anteriores. Cualquier complejidad o desviación (ej. instalar librería no
 aprobada) MUST justificarse explícitamente en el plan antes de avanzar.
 
-**Version**: 2.2.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-06-21
+**Version**: 2.3.0 | **Ratified**: 2026-06-20 | **Last Amended**: 2026-06-22

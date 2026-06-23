@@ -1,6 +1,6 @@
 import { randomInt, randomUUID } from "crypto";
 import { PrismaClient, Juego, FormatoBracket, LadoBracket, Partido, Bracket, Prisma } from "@prisma/client";
-import { obtenerEstado } from "./inscripciones";
+import { obtenerEstadoJuego } from "./inscripciones";
 import { validarResultado, ResultadoPartidoInput } from "./partido-validation";
 
 const prisma = new PrismaClient();
@@ -220,8 +220,11 @@ function construirGranFinal(
   return granFinal;
 }
 
-export async function generarBracket(juego: string): Promise<{ id: string; juego: Juego }> {
-  const estado = await obtenerEstado();
+export async function generarBracket(
+  juego: string,
+  jugadoresOverride?: string[],
+): Promise<{ id: string; juego: Juego }> {
+  const estado = await obtenerEstadoJuego(juego as Juego);
   if (estado.abierta) {
     throw new InscripcionesAbiertasError("Las inscripciones siguen abiertas");
   }
@@ -231,14 +234,23 @@ export async function generarBracket(juego: string): Promise<{ id: string; juego
     throw new BracketYaExisteError("Ya existe un bracket generado para este juego");
   }
 
-  const inscripciones = await prisma.inscripcion.findMany({ where: { juego: juego as Juego } });
-  if (inscripciones.length < 2) {
-    throw new JugadoresInsuficientesError("Se requieren al menos 2 jugadores inscritos");
+  let jugadoresIds: string[];
+  if (jugadoresOverride !== undefined && jugadoresOverride.length > 0) {
+    jugadoresIds = shuffle(jugadoresOverride);
+  } else {
+    const inscripciones = await prisma.inscripcion.findMany({ where: { juego: juego as Juego } });
+    if (inscripciones.length < 2) {
+      throw new JugadoresInsuficientesError("Se requieren al menos 2 jugadores inscritos");
+    }
+    jugadoresIds = shuffle(inscripciones.map((i): string => i.id));
+  }
+
+  if (jugadoresIds.length < 2) {
+    throw new JugadoresInsuficientesError("Se requieren al menos 2 jugadores clasificados");
   }
 
   const formato: FormatoBracket =
     juego === "FC25" ? "SINGLE_ELIMINATION" : "DOUBLE_ELIMINATION";
-  const jugadoresIds: string[] = shuffle(inscripciones.map((i): string => i.id));
   const size: number = siguientePotenciaDeDos(jugadoresIds.length);
   const nRondasWB: number = Math.log2(size);
 
@@ -299,6 +311,17 @@ function obtenerCampeonId(partidos: readonly Partido[]): string | null {
     (p): boolean => p.nextMatchId === null && p.nextLoserMatchId === null,
   );
   return final?.winnerId ?? null;
+}
+
+export async function reiniciarBracket(juego: string): Promise<void> {
+  const bracket = await prisma.bracket.findUnique({ where: { juego: juego as Juego } });
+  if (bracket === null) {
+    throw new BracketNoEncontradoError("No existe bracket para este juego");
+  }
+  await prisma.$transaction(async (tx) => {
+    await tx.partido.deleteMany({ where: { bracketId: bracket.id } });
+    await tx.bracket.delete({ where: { id: bracket.id } });
+  });
 }
 
 export async function getBracket(

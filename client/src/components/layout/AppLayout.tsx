@@ -14,10 +14,10 @@ function AppLayout(): JSX.Element {
 
   return (
     <div className="flex flex-col min-h-screen bg-bg-base">
-      <nav className="border-b border-edge px-6 py-3">
+      <nav className="border-b border-edge px-4 py-3 md:px-6 flex flex-col">
         {token === null ? <NavPublica /> : <NavAdmin />}
       </nav>
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6">
         <Outlet />
       </main>
     </div>

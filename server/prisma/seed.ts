@@ -8,9 +8,14 @@ const ADMIN_PASSWORD_PRUEBA = "admin123";
 
 async function main(): Promise<void> {
   await prisma.estadoInscripciones.upsert({
-    where: { id: "global" },
+    where: { juego: "FC25" },
     update: {},
-    create: { id: "global", abierta: true },
+    create: { juego: "FC25", abierta: true },
+  });
+  await prisma.estadoInscripciones.upsert({
+    where: { juego: "COD_BO2" },
+    update: {},
+    create: { juego: "COD_BO2", abierta: true },
   });
 
   const passwordHash: string = await bcrypt.hash(ADMIN_PASSWORD_PRUEBA, 10);

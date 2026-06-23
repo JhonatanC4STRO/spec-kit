@@ -1,3 +1,5 @@
+import { limpiarToken } from "./authStore";
+
 const BASE_URL: string = "/api";
 
 export class HttpError extends Error {
@@ -73,6 +75,10 @@ async function parseResponse<T>(response: Response): Promise<T> {
       typeof body === "object" && body !== null && "error" in body
         ? String((body as { error: unknown }).error)
         : `Error HTTP ${response.status}`;
+    if (response.status === 401) {
+      limpiarToken();
+      window.location.href = "/admin/login";
+    }
     throw new HttpError(response.status, message, body);
   }
   return body as T;

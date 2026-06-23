@@ -17,6 +17,10 @@ module.exports = {
       },
       fontFamily: {
         sans: ["Rajdhani", "Barlow Condensed", "sans-serif"],
+        landing: ["Inter", "system-ui", "sans-serif"],
+      },
+      screens: {
+        wide: "1200px",
       },
     },
   },

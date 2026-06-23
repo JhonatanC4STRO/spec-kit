@@ -1,17 +1,35 @@
 import { useState, FormEvent, JSX } from "react";
 import { crearInscripcion } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
-import type { Juego } from "@shared/types/inscripcion";
+import type { Juego, EstadoInscripciones } from "@shared/types/inscripcion";
 
 interface FormState {
   nombreCompleto: string;
   nickname: string;
+  documento: string;
+  ficha: string;
+  programa: string;
+  correo: string;
+  telefono: string;
   juego: Juego | "";
 }
 
-const ESTADO_INICIAL: FormState = { nombreCompleto: "", nickname: "", juego: "" };
+interface InscripcionFormProps {
+  estado: EstadoInscripciones;
+}
 
-function InscripcionForm(): JSX.Element {
+const ESTADO_INICIAL: FormState = {
+  nombreCompleto: "",
+  nickname: "",
+  documento: "",
+  ficha: "",
+  programa: "",
+  correo: "",
+  telefono: "",
+  juego: "",
+};
+
+function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
   const [form, setForm] = useState<FormState>(ESTADO_INICIAL);
   const [error, setError] = useState<string | null>(null);
   const [exito, setExito] = useState<boolean>(false);
@@ -21,11 +39,24 @@ function InscripcionForm(): JSX.Element {
     event.preventDefault();
     setError(null);
 
-    if (
-      form.nombreCompleto.trim() === "" ||
-      form.nickname.trim() === "" ||
-      form.juego === ""
-    ) {
+    if (form.juego === "") {
+      setError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (form.juego === "FC25") {
+      if (
+        form.nombreCompleto.trim() === "" ||
+        form.documento.trim() === "" ||
+        form.ficha.trim() === "" ||
+        form.programa.trim() === "" ||
+        form.correo.trim() === "" ||
+        form.telefono.trim() === ""
+      ) {
+        setError("Todos los campos son obligatorios");
+        return;
+      }
+    } else if (form.nombreCompleto.trim() === "" || form.nickname.trim() === "") {
       setError("Todos los campos son obligatorios");
       return;
     }
@@ -36,6 +67,15 @@ function InscripcionForm(): JSX.Element {
         nombreCompleto: form.nombreCompleto,
         nickname: form.nickname,
         juego: form.juego,
+        ...(form.juego === "FC25"
+          ? {
+              documento: form.documento,
+              ficha: form.ficha,
+              programa: form.programa,
+              correo: form.correo,
+              telefono: form.telefono,
+            }
+          : {}),
       });
       setExito(true);
       setForm(ESTADO_INICIAL);
@@ -68,8 +108,52 @@ function InscripcionForm(): JSX.Element {
           onChange={(e): void => setForm({ ...form, nombreCompleto: e.target.value })}
         />
       </label>
+      {form.juego === "FC25" && (
+        <>
+          <label className="flex flex-col gap-1">
+            Número de documento
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.documento}
+              onChange={(e): void => setForm({ ...form, documento: e.target.value })}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            Ficha
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.ficha}
+              onChange={(e): void => setForm({ ...form, ficha: e.target.value })}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            Programa
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.programa}
+              onChange={(e): void => setForm({ ...form, programa: e.target.value })}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            Correo electrónico
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.correo}
+              onChange={(e): void => setForm({ ...form, correo: e.target.value })}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            Teléfono / WhatsApp
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.telefono}
+              onChange={(e): void => setForm({ ...form, telefono: e.target.value })}
+            />
+          </label>
+        </>
+      )}
       <label className="flex flex-col gap-1">
-        Nickname
+        Nickname{form.juego === "FC25" ? " / ID (opcional)" : ""}
         <input
           className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
           value={form.nickname}
@@ -84,8 +168,12 @@ function InscripcionForm(): JSX.Element {
           onChange={(e): void => setForm({ ...form, juego: e.target.value as Juego })}
         >
           <option value="">Seleccionar juego</option>
-          <option value="FC25">FC 25</option>
-          <option value="COD_BO2">Call of Duty Black Ops 2</option>
+          <option value="FC25" disabled={!estado.FC25.abierta}>
+            FC 25{!estado.FC25.abierta && " (cerrado)"}
+          </option>
+          <option value="COD_BO2" disabled={!estado.COD_BO2.abierta}>
+            Call of Duty Black Ops 2{!estado.COD_BO2.abierta && " (cerrado)"}
+          </option>
         </select>
       </label>
       {error !== null && <p className="text-red-400">{error}</p>}

@@ -126,6 +126,7 @@ model PartidoGrupo {
   id          String    @id @default(uuid())
   grupoId     String
   grupo       Grupo     @relation(fields: [grupoId], references: [id])
+  ronda       Int?      // ronda del round-robin (metodo circular); null en partidos generados antes de este campo
   jugadorAId  String    // inscripcionId
   jugadorBId  String
   scoreA      Int?

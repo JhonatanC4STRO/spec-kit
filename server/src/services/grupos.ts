@@ -33,15 +33,36 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return r;
 }
 
-/** Genera los enfrentamientos round-robin para un grupo (todos vs todos). */
-function generarEnfrentamientos(ids: string[]): Array<{ a: string; b: string }> {
-  const pares: Array<{ a: string; b: string }> = [];
-  for (let i = 0; i < ids.length; i++) {
-    for (let j = i + 1; j < ids.length; j++) {
-      pares.push({ a: ids[i], b: ids[j] });
+const BYE = "__BYE__";
+
+/**
+ * Genera los enfrentamientos round-robin (todos vs todos) agrupados por ronda
+ * usando el método circular: con N participantes (par) hay N-1 rondas de N/2
+ * partidos cada una; si N es impar se agrega un "bye" y esa ronda queda con
+ * un partido menos.
+ */
+function generarEnfrentamientos(ids: string[]): Array<{ ronda: number; a: string; b: string }> {
+  const lista = ids.length % 2 === 0 ? [...ids] : [...ids, BYE];
+  const n = lista.length;
+  const rondas = n - 1;
+  const mitad = n / 2;
+  const resultado: Array<{ ronda: number; a: string; b: string }> = [];
+
+  let circulo = [...lista];
+  for (let r = 0; r < rondas; r++) {
+    for (let i = 0; i < mitad; i++) {
+      const a = circulo[i];
+      const b = circulo[n - 1 - i];
+      if (a !== BYE && b !== BYE) {
+        resultado.push({ ronda: r + 1, a, b });
+      }
     }
+    const fijo = circulo[0];
+    const resto = circulo.slice(1);
+    resto.unshift(resto.pop() as string);
+    circulo = [fijo, ...resto];
   }
-  return pares;
+  return resultado;
 }
 
 /** Letra de grupo: 0→A, 1→B, … */
@@ -58,7 +79,7 @@ async function obtenerFaseOLanzar(juego: Juego) {
       grupos: {
         include: {
           participantes: true,
-          partidos: { orderBy: { createdAt: "asc" } },
+          partidos: { orderBy: [{ ronda: "asc" }, { createdAt: "asc" }] },
         },
       },
     },
@@ -134,6 +155,7 @@ export async function generarFaseGrupos(
         data: enfrentamientos.map((e) => ({
           id: randomUUID(),
           grupoId: grupo.id,
+          ronda: e.ronda,
           jugadorAId: e.a,
           jugadorBId: e.b,
         })),
@@ -195,6 +217,7 @@ export async function getFaseGrupos(juego: string): Promise<FaseGruposConGrupos>
       partidos: g.partidos.map((p) => ({
         id: p.id,
         grupoId: p.grupoId,
+        ronda: p.ronda,
         jugadorAId: p.jugadorAId,
         jugadorBId: p.jugadorBId,
         scoreA: p.scoreA,

@@ -32,6 +32,7 @@ export interface GrupoParticipante {
 export interface PartidoGrupo {
   id: string;
   grupoId: string;
+  ronda: number | null;
   jugadorAId: string;
   jugadorBId: string;
   scoreA: number | null;

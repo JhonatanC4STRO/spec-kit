@@ -10,6 +10,12 @@ const JUEGOS_VALIDOS: readonly Juego[] = ["FC25", "COD_BO2"];
  */
 const CUPO_MAXIMO_POR_JUEGO = 32;
 
+/**
+ * Mínimo de inscritos para que el cierre automático aplique: 1 y 2 también son
+ * potencias de 2, pero cerrar ahí dejaría un torneo sin bracket viable.
+ */
+const MINIMO_CIERRE_AUTOMATICO = 4;
+
 export class CamposIncompletosError extends Error {}
 export class JuegoInvalidoError extends Error {}
 export class NicknameDuplicadoError extends Error {}
@@ -124,10 +130,10 @@ export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> 
     throw error;
   }
 
-  // Cierre automático al tocar una potencia de 2 (16, 32, ...): evita byes
+  // Cierre automático al tocar una potencia de 2 (4, 8, 16, 32): evita byes
   // en el bracket si el admin genera apenas se completa el cupo redondo.
   const totalTrasCrear = inscritosDelJuego + 1;
-  if (esPotenciaDeDos(totalTrasCrear)) {
+  if (totalTrasCrear >= MINIMO_CIERRE_AUTOMATICO && esPotenciaDeDos(totalTrasCrear)) {
     await actualizarEstado(juego, false);
   }
 

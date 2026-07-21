@@ -8,11 +8,12 @@ import {
   NicknameDuplicadoError,
   InscripcionesCerradasError,
   CupoCompletoError,
+  CrearInscripcionInput,
 } from "../services/inscripciones";
 
 export async function crearInscripcion(req: Request, res: Response): Promise<void> {
   try {
-    const input: any = {
+    const input: CrearInscripcionInput = {
       nombreCompleto: String(req.body?.nombreCompleto ?? ""),
       nickname: String(req.body?.nickname ?? ""),
       documento: String(req.body?.documento ?? ""),

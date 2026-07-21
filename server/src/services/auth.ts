@@ -1,13 +1,15 @@
-import { createHmac, timingSafeEqual } from "crypto";
-import bcrypt from "bcrypt";
-import { PrismaClient, Administrador } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 
 const JWT_SECRET: string = process.env.JWT_SECRET ?? "";
 const SESSION_DURATION_SECONDS: number = 600;
-const HASH_DUMMY: string =
-  "$2b$10$CwTycUXWue0Thq9StjUM0uJ8O6tIPnL9bxN.5qK0pUYqaWdJxKi9q";
+
+// Único admin del sistema: credenciales por entorno (en desarrollo aplican
+// los mismos valores por defecto que usaba el seed).
+const ADMIN_EMAIL: string = process.env.ADMIN_EMAIL ?? "admin@torneo.com";
+const ADMIN_PASSWORD: string = process.env.ADMIN_PASSWORD ?? "admin123";
+
+/** Identificador fijo que viaja en el token (ya no hay tabla de admins). */
+export const ADMIN_ID: string = "admin";
 
 export interface TokenPayload {
   adminId: string;
@@ -69,17 +71,15 @@ export function verificarToken(token: string): TokenPayload | null {
   return parsed;
 }
 
-export async function verificarCredenciales(
-  email: string,
-  password: string,
-): Promise<Administrador | null> {
-  const admin = await prisma.administrador.findUnique({ where: { email } });
+/** Comparación en tiempo constante aunque los largos difieran. */
+function compararSeguro(recibido: string, esperado: string): boolean {
+  const hashRecibido: Buffer = createHash("sha256").update(recibido).digest();
+  const hashEsperado: Buffer = createHash("sha256").update(esperado).digest();
+  return timingSafeEqual(hashRecibido, hashEsperado);
+}
 
-  if (admin === null) {
-    await bcrypt.compare(password, HASH_DUMMY);
-    return null;
-  }
-
-  const coincide: boolean = await bcrypt.compare(password, admin.passwordHash);
-  return coincide ? admin : null;
+export function verificarCredenciales(email: string, password: string): boolean {
+  const emailOk: boolean = compararSeguro(email, ADMIN_EMAIL);
+  const passwordOk: boolean = compararSeguro(password, ADMIN_PASSWORD);
+  return emailOk && passwordOk;
 }

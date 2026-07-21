@@ -1,13 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-// En producción se definen ADMIN_EMAIL y ADMIN_PASSWORD por entorno;
-// sin ellas se usan las credenciales de desarrollo.
-const ADMIN_EMAIL: string = process.env.ADMIN_EMAIL ?? "admin@torneo.com";
-const ADMIN_PASSWORD: string = process.env.ADMIN_PASSWORD ?? "admin123";
-
+// El admin ya no vive en la base de datos: sus credenciales se validan
+// directamente contra ADMIN_EMAIL / ADMIN_PASSWORD del entorno.
 async function main(): Promise<void> {
   await prisma.estadoInscripciones.upsert({
     where: { juego: "FC25" },
@@ -18,14 +14,6 @@ async function main(): Promise<void> {
     where: { juego: "COD_BO2" },
     update: {},
     create: { juego: "COD_BO2", abierta: true },
-  });
-
-  const passwordHash: string = await bcrypt.hash(ADMIN_PASSWORD, 10);
-  // update incluye el hash para poder rotar la contraseña re-ejecutando el seed
-  await prisma.administrador.upsert({
-    where: { email: ADMIN_EMAIL },
-    update: { passwordHash },
-    create: { email: ADMIN_EMAIL, passwordHash },
   });
 }
 

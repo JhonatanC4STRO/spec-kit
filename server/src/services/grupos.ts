@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from "crypto";
-import { PrismaClient, Juego, EstadoFaseGrupos } from "@prisma/client";
+import { PrismaClient, Juego, Prisma } from "@prisma/client";
 import type { FaseGruposConGrupos, ResultadoPartidoGrupoInput } from "@shared/types/grupos";
 
 const prisma = new PrismaClient();
@@ -72,17 +72,21 @@ function letraGrupo(i: number): string {
 
 // ─── Queries helpers ──────────────────────────────────────────────────────────
 
-async function obtenerFaseOLanzar(juego: Juego) {
+const FASE_INCLUDE = {
+  grupos: {
+    include: {
+      participantes: true,
+      partidos: { orderBy: [{ ronda: "asc" }, { createdAt: "asc" }] },
+    },
+  },
+} satisfies Prisma.FaseGruposInclude;
+
+type FaseCompleta = Prisma.FaseGruposGetPayload<{ include: typeof FASE_INCLUDE }>;
+
+async function obtenerFaseOLanzar(juego: Juego): Promise<FaseCompleta> {
   const fase = await prisma.faseGrupos.findUnique({
     where: { juego },
-    include: {
-      grupos: {
-        include: {
-          participantes: true,
-          partidos: { orderBy: [{ ronda: "asc" }, { createdAt: "asc" }] },
-        },
-      },
-    },
+    include: FASE_INCLUDE,
   });
   if (!fase) throw new FaseGruposNoEncontradaError("No existe fase de grupos para este juego");
   return fase;
@@ -198,22 +202,28 @@ export async function getFaseGrupos(juego: string): Promise<FaseGruposConGrupos>
     juego: fase.juego,
     estado: fase.estado,
     createdAt: fase.createdAt.toISOString(),
-    grupos: fase.grupos.map((g) => ({
+    grupos: fase.grupos.map((g) => {
+      const statsPorId = calcularStatsGrupo(
+        g.participantes.map((p) => p.inscripcionId),
+        g.partidos,
+      );
+      return {
       id: g.id,
       faseId: g.faseId,
       nombre: g.nombre,
-      participantes: [...g.participantes]
-        .sort(ordenarParticipantes)
+      participantes: g.participantes
         .map((p) => {
           const ins = inscripcionPorId.get(p.inscripcionId);
           return {
             ...p,
+            ...statsDe(statsPorId, p.inscripcionId),
             nombreCompleto: ins?.nombreCompleto ?? p.inscripcionId,
             jugador1Nombre: ins?.jugador1Nombre ?? null,
             jugador2Nombre: ins?.jugador2Nombre ?? null,
             nickEquipo: ins?.nickEquipo ?? null,
           };
-        }),
+        })
+        .sort(ordenarParticipantes),
       partidos: g.partidos.map((p) => ({
         id: p.id,
         grupoId: p.grupoId,
@@ -225,7 +235,8 @@ export async function getFaseGrupos(juego: string): Promise<FaseGruposConGrupos>
         winnerId: p.winnerId,
         resolvedAt: p.resolvedAt?.toISOString() ?? null,
       })),
-    })),
+      };
+    }),
   };
 }
 
@@ -240,10 +251,74 @@ function ordenarParticipantes(
   return b.gf - a.gf;
 }
 
+// ─── Tabla de posiciones derivada ─────────────────────────────────────────────
+// Las stats no se almacenan: se calculan siempre desde los partidos resueltos
+// del grupo, así nunca pueden descuadrarse con los resultados.
+
+interface StatsGrupo {
+  puntos: number;
+  pj: number;
+  pg: number;
+  pe: number;
+  pp: number;
+  gf: number;
+  gc: number;
+}
+
+interface PartidoGrupoResuelto {
+  jugadorAId: string;
+  jugadorBId: string;
+  scoreA: number | null;
+  scoreB: number | null;
+  resolvedAt: Date | null;
+}
+
+function statsIniciales(): StatsGrupo {
+  return { puntos: 0, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0 };
+}
+
+function acumularResultado(stats: StatsGrupo, favor: number, contra: number): void {
+  stats.pj += 1;
+  stats.gf += favor;
+  stats.gc += contra;
+  if (favor > contra) {
+    stats.pg += 1;
+    stats.puntos += 3;
+  } else if (favor === contra) {
+    stats.pe += 1;
+    stats.puntos += 1;
+  } else {
+    stats.pp += 1;
+  }
+}
+
+/** Calcula la tabla de posiciones de un grupo: inscripcionId → stats. */
+function calcularStatsGrupo(
+  inscripcionIds: readonly string[],
+  partidos: readonly PartidoGrupoResuelto[],
+): Map<string, StatsGrupo> {
+  const stats = new Map<string, StatsGrupo>();
+  for (const id of inscripcionIds) {
+    stats.set(id, statsIniciales());
+  }
+  for (const p of partidos) {
+    if (p.resolvedAt === null || p.scoreA === null || p.scoreB === null) continue;
+    const statsA = stats.get(p.jugadorAId);
+    const statsB = stats.get(p.jugadorBId);
+    if (statsA) acumularResultado(statsA, p.scoreA, p.scoreB);
+    if (statsB) acumularResultado(statsB, p.scoreB, p.scoreA);
+  }
+  return stats;
+}
+
+function statsDe(statsPorId: Map<string, StatsGrupo>, inscripcionId: string): StatsGrupo {
+  return statsPorId.get(inscripcionId) ?? statsIniciales();
+}
+
 /**
- * Registra el resultado de un partido de grupo y actualiza las estadísticas
- * de ambos participantes en la tabla de posiciones.
- * Se puede sobreescribir un resultado anterior.
+ * Registra el resultado de un partido de grupo.
+ * Se puede sobreescribir un resultado anterior: la tabla de posiciones se
+ * deriva de los partidos al leer, así que no hay stats que mantener.
  */
 export async function registrarResultadoPartidoGrupo(
   partidoId: string,
@@ -256,7 +331,8 @@ export async function registrarResultadoPartidoGrupo(
     const fase = await tx.faseGrupos.findFirst({
       where: { grupos: { some: { id: partido.grupoId } } },
     });
-    if (fase?.estado === "FINALIZADA") {
+    if (!fase) throw new FaseGruposNoEncontradaError("No existe fase de grupos para este partido");
+    if (fase.estado === "FINALIZADA") {
       throw new FaseGruposYaFinalizadaError("La fase de grupos ya está finalizada");
     }
 
@@ -264,112 +340,17 @@ export async function registrarResultadoPartidoGrupo(
     const empate = scoreA === scoreB;
     const winnerId = empate ? null : scoreA > scoreB ? partido.jugadorAId : partido.jugadorBId;
 
-    // Si ya había resultado, revertir las stats anteriores
-    if (partido.resolvedAt !== null) {
-      await revertirStats(tx, partido);
-    }
-
-    // Guardar nuevo resultado
     await tx.partidoGrupo.update({
       where: { id: partidoId },
       data: { scoreA, scoreB, winnerId, resolvedAt: new Date() },
     });
 
-    // Actualizar stats jugador A
-    await actualizarStats(tx, partido.grupoId, partido.jugadorAId, {
-      pj: 1,
-      pg: empate ? 0 : scoreA > scoreB ? 1 : 0,
-      pe: empate ? 1 : 0,
-      pp: empate ? 0 : scoreA < scoreB ? 1 : 0,
-      puntos: empate ? 1 : scoreA > scoreB ? 3 : 0,
-      gf: scoreA,
-      gc: scoreB,
-    });
-
-    // Actualizar stats jugador B
-    await actualizarStats(tx, partido.grupoId, partido.jugadorBId, {
-      pj: 1,
-      pg: empate ? 0 : scoreB > scoreA ? 1 : 0,
-      pe: empate ? 1 : 0,
-      pp: empate ? 0 : scoreB < scoreA ? 1 : 0,
-      puntos: empate ? 1 : scoreB > scoreA ? 3 : 0,
-      gf: scoreB,
-      gc: scoreA,
-    });
-
-    // Actualizar estado de la fase
-    const totalPartidos = await tx.partidoGrupo.count({
-      where: { grupo: { faseId: fase!.id } },
-    });
-    const partidosResueltos = await tx.partidoGrupo.count({
-      where: { grupo: { faseId: fase!.id }, resolvedAt: { not: null } },
-    });
-    const nuevoEstado: EstadoFaseGrupos =
-      partidosResueltos === totalPartidos ? "EN_CURSO" : "EN_CURSO";
-    // (se actualiza a FINALIZADA solo cuando el admin cierra la fase explícitamente)
+    // (pasa a FINALIZADA solo cuando el admin cierra la fase explícitamente)
     await tx.faseGrupos.update({
-      where: { id: fase!.id },
-      data: { estado: nuevoEstado },
+      where: { id: fase.id },
+      data: { estado: "EN_CURSO" },
     });
   }, { timeout: 20_000, maxWait: 10_000 });
-}
-
-interface StatsDelta {
-  pj: number;
-  pg: number;
-  pe: number;
-  pp: number;
-  puntos: number;
-  gf: number;
-  gc: number;
-}
-
-async function actualizarStats(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  grupoId: string,
-  inscripcionId: string,
-  delta: StatsDelta,
-): Promise<void> {
-  await tx.grupoParticipante.updateMany({
-    where: { grupoId, inscripcionId },
-    data: {
-      pj: { increment: delta.pj },
-      pg: { increment: delta.pg },
-      pe: { increment: delta.pe },
-      pp: { increment: delta.pp },
-      puntos: { increment: delta.puntos },
-      gf: { increment: delta.gf },
-      gc: { increment: delta.gc },
-    },
-  });
-}
-
-async function revertirStats(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  partido: { grupoId: string; jugadorAId: string; jugadorBId: string; scoreA: number | null; scoreB: number | null; winnerId: string | null },
-): Promise<void> {
-  if (partido.scoreA === null || partido.scoreB === null) return;
-  const { scoreA, scoreB } = partido;
-  const empate = scoreA === scoreB;
-
-  await actualizarStats(tx, partido.grupoId, partido.jugadorAId, {
-    pj: -1,
-    pg: empate ? 0 : scoreA > scoreB ? -1 : 0,
-    pe: empate ? -1 : 0,
-    pp: empate ? 0 : scoreA < scoreB ? -1 : 0,
-    puntos: empate ? -1 : scoreA > scoreB ? -3 : 0,
-    gf: -scoreA,
-    gc: -scoreB,
-  });
-  await actualizarStats(tx, partido.grupoId, partido.jugadorBId, {
-    pj: -1,
-    pg: empate ? 0 : scoreB > scoreA ? -1 : 0,
-    pe: empate ? -1 : 0,
-    pp: empate ? 0 : scoreB < scoreA ? -1 : 0,
-    puntos: empate ? -1 : scoreB > scoreA ? -3 : 0,
-    gf: -scoreB,
-    gc: -scoreA,
-  });
 }
 
 /**
@@ -389,7 +370,16 @@ export async function cerrarFaseGrupos(juego: string): Promise<string[]> {
 
   await prisma.$transaction(async (tx) => {
     for (const grupo of fase.grupos) {
-      const ordenados = [...grupo.participantes].sort(ordenarParticipantes);
+      const statsPorId = calcularStatsGrupo(
+        grupo.participantes.map((p) => p.inscripcionId),
+        grupo.partidos,
+      );
+      const ordenados = [...grupo.participantes].sort((a, b) =>
+        ordenarParticipantes(
+          statsDe(statsPorId, a.inscripcionId),
+          statsDe(statsPorId, b.inscripcionId),
+        ),
+      );
       const config = obtenerConfig(juegoEnum);
       const top = ordenados.slice(0, config.clasificadosPorGrupo);
 

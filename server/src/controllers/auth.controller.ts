@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { verificarCredenciales, generarToken } from "../services/auth";
+import { verificarCredenciales, generarToken, ADMIN_ID } from "../services/auth";
 
 export async function login(req: Request, res: Response): Promise<void> {
   const email: string = String(req.body?.email ?? "").trim();
@@ -10,13 +10,11 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const admin = await verificarCredenciales(email, password);
-
-  if (admin === null) {
+  if (!verificarCredenciales(email, password)) {
     res.status(401).json({ error: "Credenciales inválidas" });
     return;
   }
 
-  const { token, expiresInSeconds } = generarToken(admin.id);
+  const { token, expiresInSeconds } = generarToken(ADMIN_ID);
   res.status(200).json({ token, expiresInSeconds });
 }

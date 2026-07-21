@@ -2,7 +2,7 @@ import { useState, FormEvent, useEffect, JSX } from "react";
 import { crearInscripcion } from "../../services/inscripciones";
 import { getEstado } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
-import type { Juego, EstadoInscripciones } from "@shared/types/inscripcion";
+import type { Juego, EstadoInscripciones, CrearInscripcionRequest } from "@shared/types/inscripcion";
 
 interface FormState {
   nombreCompleto: string;
@@ -90,20 +90,19 @@ function LandingInscripcionForm(): JSX.Element {
 
     setEnviando(true);
     try {
-      const payload: any = {
+      const payload: CrearInscripcionRequest = {
         juego: form.juego,
         nickname: form.nickname,
+        nombreCompleto: form.juego === "FC25" ? form.nombreCompleto : form.nickname,
       };
 
       if (form.juego === "FC25") {
-        payload.nombreCompleto = form.nombreCompleto;
         payload.documento = form.documento;
         payload.ficha = form.ficha;
         payload.programa = form.programa;
         payload.correo = form.correo;
         payload.telefono = form.telefono;
       } else {
-        payload.nombreCompleto = form.nickname;
         payload.jugador1Nombre = form.jugador1Nombre;
         payload.jugador2Nombre = form.jugador2Nombre;
         payload.ficha = form.ficha;

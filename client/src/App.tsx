@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import InscripcionPage from "./pages/InscripcionPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -14,9 +14,11 @@ function App(): JSX.Element {
   return (
     <BrowserRouter>
       <Routes>
+        {/* La raíz redirige a la landing */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<LandingPage />} />
         <Route element={<AppLayout />}>
-          <Route path="/" element={<InscripcionPage />} />
+          <Route path="/inscripcion" element={<InscripcionPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/jugadores" element={<AdminJugadoresPage />} />
           <Route path="/admin/bracket/fc25" element={<AdminBracketFc25Page />} />

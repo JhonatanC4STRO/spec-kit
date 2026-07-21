@@ -18,7 +18,7 @@ function LandingPage(): JSX.Element {
   }, [location.state]);
 
   return (
-    <div id="inicio" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div id="inicio">
       <LandingNavbar />
       <Hero />
       <TournamentInfo />

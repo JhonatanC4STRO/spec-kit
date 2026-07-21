@@ -13,6 +13,7 @@ export class FaseGruposNoFinalizadaError extends Error {}
 export class FaseGruposYaFinalizadaError extends Error {}
 export class JugadoresInsuficientesGruposError extends Error {}
 export class CantidadInvalidaGruposError extends Error {}
+export class FaseGruposIncompletaError extends Error {}
 export class PartidoGrupoYaResueltoError extends Error {}
 
 // ─── Utilidades ───────────────────────────────────────────────────────────────
@@ -357,6 +358,18 @@ export async function cerrarFaseGrupos(juego: string): Promise<string[]> {
   const fase = await obtenerFaseOLanzar(juegoEnum);
   if (fase.estado === "FINALIZADA") {
     throw new FaseGruposYaFinalizadaError("La fase de grupos ya está finalizada");
+  }
+
+  // No se puede cerrar la fase hasta que todos los partidos tengan resultado:
+  // clasificar con la tabla incompleta produciría un bracket con clasificados
+  // provisionales.
+  const partidosPendientes = fase.grupos
+    .flatMap((g) => g.partidos)
+    .filter((p) => p.resolvedAt === null).length;
+  if (partidosPendientes > 0) {
+    throw new FaseGruposIncompletaError(
+      `Faltan ${partidosPendientes} partido(s) de grupo por jugar antes de cerrar la fase`,
+    );
   }
 
   const clasificadosIds: string[] = [];

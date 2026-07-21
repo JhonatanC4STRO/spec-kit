@@ -6,6 +6,7 @@ import {
   CamposIncompletosError,
   JuegoInvalidoError,
   NicknameDuplicadoError,
+  DocumentoDuplicadoError,
   InscripcionesCerradasError,
   CupoCompletoError,
   CrearInscripcionInput,
@@ -37,7 +38,7 @@ export async function crearInscripcion(req: Request, res: Response): Promise<voi
       res.status(400).json({ error: error.message });
       return;
     }
-    if (error instanceof NicknameDuplicadoError) {
+    if (error instanceof NicknameDuplicadoError || error instanceof DocumentoDuplicadoError) {
       res.status(409).json({ error: error.message });
       return;
     }

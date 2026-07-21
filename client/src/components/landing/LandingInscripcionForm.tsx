@@ -64,6 +64,7 @@ function LandingInscripcionForm(): JSX.Element {
     if (form.juego === "FC25") {
       if (
         form.nombreCompleto.trim() === "" ||
+        form.nickname.trim() === "" ||
         form.documento.trim() === "" ||
         form.ficha.trim() === "" ||
         form.programa.trim() === "" ||
@@ -304,6 +305,38 @@ function LandingInscripcionForm(): JSX.Element {
                       value={form.nombreCompleto}
                       onChange={(e): void =>
                         setForm({ ...form, nombreCompleto: e.target.value })
+                      }
+                      onFocus={(e): void => {
+                        e.currentTarget.style.borderColor = "#00c853";
+                        e.currentTarget.style.boxShadow = "0 0 0 2px rgba(0,200,83,0.15)";
+                      }}
+                      onBlur={(e): void => {
+                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    />
+                  </div>
+
+                  {/* Apodo / Nickname */}
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="inscripcion-nickname"
+                      className="text-sm font-semibold text-gray-300"
+                    >
+                      Apodo / Nickname
+                    </label>
+                    <input
+                      id="inscripcion-nickname"
+                      type="text"
+                      placeholder="Ej: ElCrack10"
+                      className="rounded-xl px-4 py-3 text-sm text-white outline-none transition-all duration-300"
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                      }}
+                      value={form.nickname}
+                      onChange={(e): void =>
+                        setForm({ ...form, nickname: e.target.value })
                       }
                       onFocus={(e): void => {
                         e.currentTarget.style.borderColor = "#00c853";

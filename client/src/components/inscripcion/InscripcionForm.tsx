@@ -47,6 +47,7 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
     if (form.juego === "FC25") {
       if (
         form.nombreCompleto.trim() === "" ||
+        form.nickname.trim() === "" ||
         form.documento.trim() === "" ||
         form.ficha.trim() === "" ||
         form.programa.trim() === "" ||
@@ -110,6 +111,14 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
       </label>
       {form.juego === "FC25" && (
         <>
+          <label className="flex flex-col gap-1">
+            Apodo / Nickname
+            <input
+              className="bg-bg-alt border border-edge text-white rounded px-3 py-2"
+              value={form.nickname}
+              onChange={(e): void => setForm({ ...form, nickname: e.target.value })}
+            />
+          </label>
           <label className="flex flex-col gap-1">
             Número de documento
             <input

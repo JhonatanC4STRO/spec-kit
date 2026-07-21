@@ -33,7 +33,7 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
   const [scoreB, setScoreB] = useState<string>("");
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmando, setConfirmando] = useState<"reiniciar" | "cerrar" | null>(null);
+  const [confirmando, setConfirmando] = useState<"reiniciar" | "cerrar" | "revolver" | null>(null);
   const [inscritos, setInscritos] = useState<number>(0);
 
   const cantidadOk: boolean = esCantidadValida(juego as Juego, inscritos);
@@ -135,6 +135,23 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
     }
   }
 
+  // Descarta la fase actual y genera un sorteo nuevo (nuevo reparto aleatorio).
+  async function handleRevolver(): Promise<void> {
+    setCargando(true);
+    setError(null);
+    try {
+      await reiniciarFaseGrupos(juego, token);
+      await generarFaseGrupos(juego, token);
+      cargar();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Error volviendo a generar los grupos");
+      cargar();
+    } finally {
+      setCargando(false);
+      setConfirmando(null);
+    }
+  }
+
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -211,6 +228,34 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
           )}
           {fase && (
             <>
+              {confirmando === "revolver" ? (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRevolver}
+                    disabled={cargando}
+                    className="px-4 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-500 transition-colors disabled:opacity-50"
+                  >
+                    {cargando ? "Revolviendo…" : "Confirmar nuevo sorteo"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmando(null)}
+                    className="px-4 py-2 rounded-lg text-sm font-bold bg-edge text-white hover:bg-white/10 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmando("revolver")}
+                  disabled={cargando}
+                  className="px-4 py-2 rounded-lg text-sm font-bold bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/50 transition-colors duration-200 disabled:opacity-50"
+                >
+                  🔀 Volver a revolver
+                </button>
+              )}
               {confirmando === "reiniciar" ? (
                 <div className="flex gap-2">
                   <button

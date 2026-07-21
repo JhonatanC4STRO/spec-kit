@@ -1,13 +1,20 @@
 import { useState, JSX } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function LandingNavbar(): JSX.Element {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const scrollTo = (id: string): void => {
+    setMobileOpen(false);
+    // Fuera de /home no existen las secciones: navegamos y delegamos el scroll
+    if (pathname !== "/home") {
+      navigate("/home", { state: { scrollTo: id } });
+      return;
+    }
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
-    setMobileOpen(false);
   };
 
   const NAV_LINKS: { label: string; targetId: string }[] = [

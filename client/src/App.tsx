@@ -22,7 +22,6 @@ function App(): JSX.Element {
           <Route path="/admin/bracket/fc25" element={<AdminBracketFc25Page />} />
           <Route path="/admin/bracket/cod-bo2" element={<AdminBracketCodPage />} />
           {/* Vistas públicas (solo lectura) */}
-          <Route path="/home">Inicio</Route>
           <Route path="/bracket/fc25" element={<PublicBracketFcPage />} />
           <Route path="/bracket/cod-bo2" element={<PublicBracketCodPage />} />
         </Route>

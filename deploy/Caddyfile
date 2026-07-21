@@ -1,0 +1,15 @@
+torneo.shona.lat {
+	encode gzip
+
+	# API → contenedor de Node
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# Frontend estático con fallback a index.html (React Router)
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,21 @@
+# Variante para Dokploy: el TLS y el dominio los maneja el Traefik de Dokploy,
+# así que Caddy solo sirve HTTP interno en el puerto 80.
+{
+	auto_https off
+}
+
+:80 {
+	encode gzip
+
+	# API → contenedor de Node
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# Frontend estático con fallback a index.html (React Router)
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -11,6 +11,7 @@ import {
   PartidoGrupoNoEncontradoError,
   FaseGruposYaFinalizadaError,
   JugadoresInsuficientesGruposError,
+  CantidadInvalidaGruposError,
 } from "../services/grupos";
 import { generarBracket, BracketYaExisteError } from "../services/bracket";
 import type { ResultadoPartidoGrupoInput } from "@shared/types/grupos";
@@ -24,7 +25,10 @@ export async function generarGruposController(req: Request, res: Response): Prom
       res.status(409).json({ error: err.message });
       return;
     }
-    if (err instanceof JugadoresInsuficientesGruposError) {
+    if (
+      err instanceof JugadoresInsuficientesGruposError ||
+      err instanceof CantidadInvalidaGruposError
+    ) {
       res.status(400).json({ error: err.message });
       return;
     }

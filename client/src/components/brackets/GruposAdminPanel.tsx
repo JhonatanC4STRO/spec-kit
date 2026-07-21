@@ -9,6 +9,8 @@ import {
 import { getJugadoresPublico } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
 import type { FaseGruposConGrupos, PartidoGrupo } from "@shared/types/grupos";
+import type { Juego } from "@shared/types/inscripcion";
+import { esCantidadValida, cantidadesValidas } from "../../utils/torneo";
 import GrupoCard from "./GrupoCard";
 
 interface GruposAdminPanelProps {
@@ -32,6 +34,9 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState<"reiniciar" | "cerrar" | null>(null);
+  const [inscritos, setInscritos] = useState<number>(0);
+
+  const cantidadOk: boolean = esCantidadValida(juego as Juego, inscritos);
 
   const cargar = useCallback((): void => {
     getFaseGrupos(juego)
@@ -49,9 +54,10 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
         const m: Record<string, string> = {};
         lista.forEach((j) => { m[j.id] = j.nombreCompleto; });
         setNombrePorId(m);
+        setInscritos(lista.filter((j) => j.juego === juego).length);
       })
       .catch(() => undefined);
-  }, []);
+  }, [juego]);
 
   function nombre(id: string): string {
     return nombrePorId[id] ?? id.slice(0, 8) + "…";
@@ -160,8 +166,13 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
             <button
               type="button"
               onClick={handleGenerar}
-              disabled={cargando}
-              className="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-black hover:bg-primary/80 transition-colors duration-200 disabled:opacity-50"
+              disabled={cargando || !cantidadOk}
+              title={
+                cantidadOk
+                  ? undefined
+                  : `Se necesitan ${cantidadesValidas(juego as Juego).join(", ")} inscritos (hay ${inscritos})`
+              }
+              className="px-4 py-2 rounded-lg text-sm font-bold bg-primary text-black hover:bg-primary/80 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cargando ? "Generando…" : "⚡ Generar grupos"}
             </button>
@@ -242,7 +253,14 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
       {fase === null && (
         <div className="bg-bg-card border border-edge rounded-xl p-6 text-center text-text-secondary">
           <p>No se ha generado la fase de grupos.</p>
-          <p className="text-xs mt-1">Cierra las inscripciones y haz clic en "Generar grupos".</p>
+          {cantidadOk ? (
+            <p className="text-xs mt-1">Cierra las inscripciones y haz clic en "Generar grupos".</p>
+          ) : (
+            <p className="text-xs mt-1 text-amber-400">
+              Hay {inscritos} inscrito{inscritos === 1 ? "" : "s"}. Solo se puede generar con{" "}
+              {cantidadesValidas(juego as Juego).join(", ")} jugadores.
+            </p>
+          )}
         </div>
       )}
 

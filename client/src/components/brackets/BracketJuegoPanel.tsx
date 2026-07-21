@@ -16,6 +16,7 @@ interface BracketJuegoPanelProps {
 function BracketJuegoPanel({ juego, token }: BracketJuegoPanelProps): JSX.Element {
   const [bracket, setBracket] = useState<BracketConPartidos | null | undefined>(undefined);
   const [jugadoresPorId, setJugadoresPorId] = useState<Record<string, string>>({});
+  const [inscritos, setInscritos] = useState<number>(0);
 
   const cargar = useCallback((): void => {
     getBracket(juego)
@@ -39,9 +40,10 @@ function BracketJuegoPanel({ juego, token }: BracketJuegoPanelProps): JSX.Elemen
           mapa[jugador.id] = jugador.nombreCompleto;
         }
         setJugadoresPorId(mapa);
+        setInscritos(listado[juego].length);
       })
       .catch((): void => undefined);
-  }, [token]);
+  }, [token, juego]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -63,7 +65,7 @@ function BracketJuegoPanel({ juego, token }: BracketJuegoPanelProps): JSX.Elemen
           <p className="text-text-secondary">
             Todavía no se generó el bracket de {juego}.
           </p>
-          <GenerarBracketButton juego={juego} token={token} onGenerado={cargar} />
+          <GenerarBracketButton juego={juego} token={token} inscritos={inscritos} onGenerado={cargar} />
         </div>
       )}
       {bracket !== undefined && bracket !== null && (

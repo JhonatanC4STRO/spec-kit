@@ -196,6 +196,10 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
                   🏁 Cerrar fase y generar bracket
                 </button>
               )}
+            </>
+          )}
+          {fase && (
+            <>
               {confirmando === "reiniciar" ? (
                 <div className="flex gap-2">
                   <button

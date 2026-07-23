@@ -8,6 +8,16 @@ interface GrupoCardProps {
   nombre: (id: string) => string;
   onPartidoClick?: (partido: PartidoGrupo) => void;
   mostrarPartidosSiempre?: boolean;
+  partidoActivo?: PartidoGrupo | null;
+  scoreA?: string;
+  scoreB?: string;
+  errorResultado?: string | null;
+  guardandoResultado?: boolean;
+  onScoreAChange?: (value: string) => void;
+  onScoreBChange?: (value: string) => void;
+  onGuardarResultado?: () => void;
+  onCancelarResultado?: () => void;
+  onMarcarWalkover?: () => void;
 }
 
 type Tab = "posiciones" | "partidos";
@@ -43,6 +53,16 @@ function GrupoCard({
   nombre,
   onPartidoClick,
   mostrarPartidosSiempre = false,
+  partidoActivo = null,
+  scoreA = "",
+  scoreB = "",
+  errorResultado = null,
+  guardandoResultado = false,
+  onScoreAChange,
+  onScoreBChange,
+  onGuardarResultado,
+  onCancelarResultado,
+  onMarcarWalkover,
 }: GrupoCardProps): JSX.Element {
   const [tab, setTab] = useState<Tab>("posiciones");
   const clasificadosCount = juego === "FC25" ? 2 : 1;
@@ -50,12 +70,33 @@ function GrupoCard({
   const rondas = agruparPorRonda(grupo.partidos);
   const mostrarPosiciones = mostrarPartidosSiempre || tab === "posiciones";
   const mostrarPartidos = mostrarPartidosSiempre || tab === "partidos";
+  const puedeEditarResultado: boolean =
+    partidoActivo !== null &&
+    onGuardarResultado !== undefined &&
+    onScoreAChange !== undefined &&
+    onScoreBChange !== undefined;
+
+  function escudoClass(index: number): string {
+    const colores: string[] = [
+      "border-emerald-400 text-emerald-400",
+      "border-yellow-400 text-yellow-400",
+      "border-sky-400 text-sky-400",
+      "border-violet-400 text-violet-400",
+    ];
+    return colores[index % colores.length];
+  }
+
+  function jugadorIndex(inscripcionId: string): number {
+    const index = grupo.participantes.findIndex((p): boolean => p.inscripcionId === inscripcionId);
+    return index === -1 ? 0 : index;
+  }
 
   return (
-    <div className="bg-bg-card border border-edge rounded-xl overflow-hidden">
+    <div className="bg-bg-card border border-edge rounded-md overflow-hidden">
       {/* Header con tabs */}
-      <div className="flex items-center justify-between border-b border-edge bg-white/5 px-4">
-        <h3 className="font-bold text-white text-sm uppercase tracking-wider py-3">
+      <div className="flex flex-col gap-3 border-b border-edge bg-white/5 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="font-bold text-white text-lg uppercase tracking-wide flex items-center gap-3">
+          <span className="text-text-secondary text-base">::</span>
           {grupo.nombre}
         </h3>
         {mostrarPartidosSiempre ? (
@@ -63,14 +104,14 @@ function GrupoCard({
             Posiciones y partidos
           </span>
         ) : (
-          <div className="flex gap-4">
+          <div className="flex w-full rounded-md bg-white/5 p-1 sm:w-auto">
             <button
               type="button"
               onClick={() => setTab("posiciones")}
-              className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
+              className={`flex-1 rounded px-4 py-2 text-sm font-semibold transition-colors duration-200 sm:flex-none ${
                 tab === "posiciones"
-                  ? "text-primary border-primary"
-                  : "text-text-secondary border-transparent hover:text-white"
+                  ? "bg-white/10 text-white"
+                  : "text-text-secondary hover:text-white"
               }`}
             >
               Posiciones
@@ -78,10 +119,10 @@ function GrupoCard({
             <button
               type="button"
               onClick={() => setTab("partidos")}
-              className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
+              className={`flex-1 rounded px-4 py-2 text-sm font-semibold transition-colors duration-200 sm:flex-none ${
                 tab === "partidos"
-                  ? "text-primary border-primary"
-                  : "text-text-secondary border-transparent hover:text-white"
+                  ? "bg-emerald-500/10 text-primary shadow-[inset_0_-2px_0_#00ff87]"
+                  : "text-text-secondary hover:text-white"
               }`}
             >
               Partidos
@@ -203,64 +244,164 @@ function GrupoCard({
       )}
 
       {mostrarPartidos && (
-        <div className={`p-4 overflow-x-auto ${mostrarPartidosSiempre ? "border-t border-edge" : ""}`}>
+        <div className={`p-4 sm:p-6 ${mostrarPartidosSiempre ? "border-t border-edge" : ""}`}>
           {mostrarPartidosSiempre && (
             <p className="text-[10px] uppercase tracking-widest text-text-secondary font-bold mb-3">
               Partidos del grupo
             </p>
           )}
-          <div className="flex gap-4 min-w-max">
+          <div className="grid gap-6 md:grid-cols-3">
             {rondas.map(({ ronda, partidos }) => (
-              <div key={ronda} className="flex flex-col gap-2 w-48">
-                <p className="text-[10px] uppercase tracking-widest text-text-secondary font-bold text-center">
+              <div key={ronda} className="flex flex-col gap-3">
+                <p className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-primary font-bold">
+                  <span className="h-px flex-1 bg-primary/30" />
                   Ronda {ronda}
+                  <span className="h-px flex-1 bg-primary/30" />
                 </p>
                 {partidos.map((partido) => {
                   const resuelto = partido.resolvedAt !== null;
+                  const activo = partidoActivo?.id === partido.id;
                   return (
                     <button
                       key={partido.id}
                       type="button"
                       disabled={!clickable}
                       onClick={() => clickable && onPartidoClick?.(partido)}
-                      className={`flex flex-col rounded-lg border text-xs overflow-hidden text-left ${
-                        resuelto ? "border-edge bg-white/5" : "border-primary/30 bg-primary/5"
-                      } ${clickable ? "cursor-pointer hover:bg-white/10" : "cursor-default"}`}
+                      className={`relative flex min-h-[66px] items-center gap-3 rounded-md border px-3 py-3 text-left text-sm transition-colors duration-200 ${
+                        activo
+                          ? "border-primary bg-primary/10 shadow-[0_0_0_1px_rgba(0,255,135,0.25)]"
+                          : resuelto
+                            ? "border-edge bg-white/5"
+                            : "border-edge bg-white/[0.03]"
+                      } ${clickable ? "cursor-pointer hover:border-primary/50 hover:bg-white/10" : "cursor-default"}`}
                     >
-                      <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 border-b border-edge/40">
-                        <span
-                          className={`truncate ${
-                            resuelto && partido.winnerId === partido.jugadorAId
-                              ? "text-emerald-300 font-semibold"
-                              : "text-white"
-                          }`}
-                        >
-                          {nombre(partido.jugadorAId)}
+                      <span className={`h-5 w-5 shrink-0 rounded border-2 ${escudoClass(jugadorIndex(partido.jugadorAId))}`} />
+                      <span
+                        className={`min-w-0 flex-1 truncate ${
+                          resuelto && partido.winnerId === partido.jugadorAId
+                            ? "text-emerald-300 font-semibold"
+                            : "text-white"
+                        }`}
+                      >
+                        {nombre(partido.jugadorAId)}
+                      </span>
+                      <span className="shrink-0 text-[10px] uppercase tracking-widest text-text-secondary">
+                        {resuelto ? `${partido.scoreA} - ${partido.scoreB}` : "vs"}
+                      </span>
+                      <span
+                        className={`min-w-0 flex-1 truncate text-right ${
+                          resuelto && partido.winnerId === partido.jugadorBId
+                            ? "text-emerald-300 font-semibold"
+                            : "text-white"
+                        }`}
+                      >
+                        {nombre(partido.jugadorBId)}
+                      </span>
+                      <span className={`h-5 w-5 shrink-0 rounded border-2 ${escudoClass(jugadorIndex(partido.jugadorBId))}`} />
+                      {clickable && (
+                        <span className="ml-1 flex h-8 w-10 shrink-0 items-center justify-center rounded bg-white/10 text-[10px] font-bold uppercase text-white">
+                          Edit
                         </span>
-                        <span className="font-mono font-bold text-white shrink-0">
-                          {resuelto ? partido.scoreA : "-"}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
-                        <span
-                          className={`truncate ${
-                            resuelto && partido.winnerId === partido.jugadorBId
-                              ? "text-emerald-300 font-semibold"
-                              : "text-white"
-                          }`}
-                        >
-                          {nombre(partido.jugadorBId)}
-                        </span>
-                        <span className="font-mono font-bold text-white shrink-0">
-                          {resuelto ? partido.scoreB : "-"}
-                        </span>
-                      </div>
+                      )}
                     </button>
                   );
                 })}
               </div>
             ))}
           </div>
+
+          {puedeEditarResultado && partidoActivo !== null && (
+            <div className="relative mt-7 rounded-md border border-primary bg-black/30 px-5 py-5 shadow-[0_0_30px_rgba(0,255,135,0.08)] sm:px-7">
+              <div className="absolute -top-4 left-1/4 h-7 w-7 rotate-45 border-l border-t border-primary bg-bg-card" />
+              <div className="relative flex items-center justify-between gap-4 border-b border-edge pb-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="rounded border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    Ronda {partidoActivo.ronda ?? 0}
+                  </span>
+                  <h4 className="truncate text-sm font-bold text-white sm:text-base">
+                    {nombre(partidoActivo.jugadorAId)} vs {nombre(partidoActivo.jugadorBId)}
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={onCancelarResultado}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-white/10 text-xl text-white transition-colors duration-200 hover:bg-white/15"
+                >
+                  x
+                </button>
+              </div>
+
+              <div className="grid items-center gap-5 py-8 md:grid-cols-[1fr_auto_1fr]">
+                <div className="flex items-center justify-center gap-3 md:justify-start">
+                  <span className={`h-9 w-9 rounded border-4 ${escudoClass(jugadorIndex(partidoActivo.jugadorAId))}`} />
+                  <span className="min-w-0 truncate text-lg font-bold text-white">
+                    {nombre(partidoActivo.jugadorAId)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-[minmax(88px,128px)_auto_minmax(88px,128px)] items-center gap-5">
+                  <input
+                    type="number"
+                    min={0}
+                    value={scoreA}
+                    onChange={(e): void => onScoreAChange?.(e.target.value)}
+                    className="h-20 rounded-md border border-edge bg-black/30 text-center text-5xl font-black text-white outline-none transition-colors duration-200 focus:border-primary"
+                    placeholder="0"
+                  />
+                  <span className="text-3xl font-black uppercase text-text-secondary">vs</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={scoreB}
+                    onChange={(e): void => onScoreBChange?.(e.target.value)}
+                    className="h-20 rounded-md border border-edge bg-black/30 text-center text-5xl font-black text-white outline-none transition-colors duration-200 focus:border-primary"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="flex items-center justify-center gap-3 md:justify-end">
+                  <span className="min-w-0 truncate text-lg font-bold text-white">
+                    {nombre(partidoActivo.jugadorBId)}
+                  </span>
+                  <span className={`h-9 w-9 rounded border-4 ${escudoClass(jugadorIndex(partidoActivo.jugadorBId))}`} />
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={onMarcarWalkover}
+                  className="rounded-md border border-edge bg-white/5 px-5 py-2 text-sm font-bold text-white transition-colors duration-200 hover:border-primary/50 hover:bg-white/10"
+                >
+                  Marcar como WO
+                </button>
+              </div>
+
+              {errorResultado !== null && (
+                <p className="mt-5 rounded border border-red-400/30 bg-red-400/10 px-3 py-2 text-sm text-red-400">
+                  {errorResultado}
+                </p>
+              )}
+
+              <div className="mt-8 flex flex-col gap-3 border-t border-edge pt-5 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={onCancelarResultado}
+                  className="rounded-md border border-edge bg-white/5 px-8 py-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/10"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={onGuardarResultado}
+                  disabled={guardandoResultado}
+                  className="rounded-md bg-primary px-8 py-3 text-sm font-bold text-black transition-colors duration-200 hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Guardar resultado
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

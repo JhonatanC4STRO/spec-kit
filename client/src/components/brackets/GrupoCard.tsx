@@ -7,6 +7,7 @@ interface GrupoCardProps {
   estadoFase: EstadoFaseGrupos;
   nombre: (id: string) => string;
   onPartidoClick?: (partido: PartidoGrupo) => void;
+  mostrarPartidosSiempre?: boolean;
 }
 
 type Tab = "posiciones" | "partidos";
@@ -35,11 +36,20 @@ function agruparPorRonda(partidos: PartidoGrupo[]): Array<{ ronda: number; parti
     .map(([ronda, partidos]) => ({ ronda, partidos }));
 }
 
-function GrupoCard({ grupo, juego, estadoFase, nombre, onPartidoClick }: GrupoCardProps): JSX.Element {
+function GrupoCard({
+  grupo,
+  juego,
+  estadoFase,
+  nombre,
+  onPartidoClick,
+  mostrarPartidosSiempre = false,
+}: GrupoCardProps): JSX.Element {
   const [tab, setTab] = useState<Tab>("posiciones");
   const clasificadosCount = juego === "FC25" ? 2 : 1;
   const clickable = onPartidoClick !== undefined && estadoFase !== "FINALIZADA";
   const rondas = agruparPorRonda(grupo.partidos);
+  const mostrarPosiciones = mostrarPartidosSiempre || tab === "posiciones";
+  const mostrarPartidos = mostrarPartidosSiempre || tab === "partidos";
 
   return (
     <div className="bg-bg-card border border-edge rounded-xl overflow-hidden">
@@ -48,33 +58,39 @@ function GrupoCard({ grupo, juego, estadoFase, nombre, onPartidoClick }: GrupoCa
         <h3 className="font-bold text-white text-sm uppercase tracking-wider py-3">
           {grupo.nombre}
         </h3>
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => setTab("posiciones")}
-            className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
-              tab === "posiciones"
-                ? "text-primary border-primary"
-                : "text-text-secondary border-transparent hover:text-white"
-            }`}
-          >
-            Posiciones
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("partidos")}
-            className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
-              tab === "partidos"
-                ? "text-primary border-primary"
-                : "text-text-secondary border-transparent hover:text-white"
-            }`}
-          >
-            Partidos
-          </button>
-        </div>
+        {mostrarPartidosSiempre ? (
+          <span className="text-[10px] uppercase tracking-widest text-text-secondary">
+            Posiciones y partidos
+          </span>
+        ) : (
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setTab("posiciones")}
+              className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
+                tab === "posiciones"
+                  ? "text-primary border-primary"
+                  : "text-text-secondary border-transparent hover:text-white"
+              }`}
+            >
+              Posiciones
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("partidos")}
+              className={`text-xs font-semibold py-3 border-b-2 transition-colors duration-200 ${
+                tab === "partidos"
+                  ? "text-primary border-primary"
+                  : "text-text-secondary border-transparent hover:text-white"
+              }`}
+            >
+              Partidos
+            </button>
+          </div>
+        )}
       </div>
 
-      {tab === "posiciones" && (
+      {mostrarPosiciones && (
         <>
           {/* Equipos (solo para COD_BO2) */}
           {juego === "COD_BO2" && (
@@ -186,8 +202,13 @@ function GrupoCard({ grupo, juego, estadoFase, nombre, onPartidoClick }: GrupoCa
         </>
       )}
 
-      {tab === "partidos" && (
-        <div className="p-4 overflow-x-auto">
+      {mostrarPartidos && (
+        <div className={`p-4 overflow-x-auto ${mostrarPartidosSiempre ? "border-t border-edge" : ""}`}>
+          {mostrarPartidosSiempre && (
+            <p className="text-[10px] uppercase tracking-widest text-text-secondary font-bold mb-3">
+              Partidos del grupo
+            </p>
+          )}
           <div className="flex gap-4 min-w-max">
             {rondas.map(({ ronda, partidos }) => (
               <div key={ronda} className="flex flex-col gap-2 w-48">

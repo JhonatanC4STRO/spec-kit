@@ -40,6 +40,7 @@ function GruposPublicoView({ fase, nombrePorId }: GruposPublicoViewProps): JSX.E
             juego={fase.juego}
             estadoFase={fase.estado}
             nombre={nombre}
+            mostrarPartidosSiempre={fase.juego === "FC25"}
           />
         ))}
       </div>

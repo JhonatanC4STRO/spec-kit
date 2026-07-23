@@ -2,12 +2,14 @@ import { randomInt, randomUUID } from "crypto";
 import { PrismaClient, Juego, FormatoBracket, LadoBracket, Partido, Bracket, Prisma } from "@prisma/client";
 import { obtenerEstadoJuego } from "./inscripciones";
 import { validarResultado, ResultadoPartidoInput } from "./partido-validation";
+import { esCantidadValida, cantidadesValidas } from "./torneo-config";
 
 const prisma = new PrismaClient();
 
 export class InscripcionesAbiertasError extends Error {}
 export class BracketYaExisteError extends Error {}
 export class JugadoresInsuficientesError extends Error {}
+export class CantidadInvalidaError extends Error {}
 export class BracketNoEncontradoError extends Error {}
 export class PartidoNoEncontradoError extends Error {}
 export class JugadoresIncompletosError extends Error {}
@@ -239,8 +241,10 @@ export async function generarBracket(
     jugadoresIds = shuffle(jugadoresOverride);
   } else {
     const inscripciones = await prisma.inscripcion.findMany({ where: { juego: juego as Juego } });
-    if (inscripciones.length < 2) {
-      throw new JugadoresInsuficientesError("Se requieren al menos 2 jugadores inscritos");
+    if (!esCantidadValida(juego as Juego, inscripciones.length)) {
+      throw new CantidadInvalidaError(
+        `Solo se puede generar el bracket con ${cantidadesValidas(juego as Juego).join(", ")} jugadores (hay ${inscripciones.length})`,
+      );
     }
     jugadoresIds = shuffle(inscripciones.map((i): string => i.id));
   }

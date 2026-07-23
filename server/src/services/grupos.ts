@@ -1,17 +1,9 @@
 import { randomInt, randomUUID } from "crypto";
 import { PrismaClient, Juego, Prisma } from "@prisma/client";
 import type { FaseGruposConGrupos, ResultadoPartidoGrupoInput } from "@shared/types/grupos";
+import { obtenerConfig, esCantidadValida, cantidadesValidas } from "./torneo-config";
 
 const prisma = new PrismaClient();
-
-// ─── Configuración del torneo ─────────────────────────────────────────────────
-function obtenerConfig(juego: Juego): { jugadoresPorGrupo: number; clasificadosPorGrupo: number } {
-  if (juego === "FC25") {
-    return { jugadoresPorGrupo: 4, clasificadosPorGrupo: 2 };
-  } else {
-    return { jugadoresPorGrupo: 3, clasificadosPorGrupo: 1 };
-  }
-}
 
 // ─── Errores propios ──────────────────────────────────────────────────────────
 export class FaseGruposYaExisteError extends Error {}
@@ -20,6 +12,8 @@ export class PartidoGrupoNoEncontradoError extends Error {}
 export class FaseGruposNoFinalizadaError extends Error {}
 export class FaseGruposYaFinalizadaError extends Error {}
 export class JugadoresInsuficientesGruposError extends Error {}
+export class CantidadInvalidaGruposError extends Error {}
+export class FaseGruposIncompletaError extends Error {}
 export class PartidoGrupoYaResueltoError extends Error {}
 
 // ─── Utilidades ───────────────────────────────────────────────────────────────
@@ -118,9 +112,9 @@ export async function generarFaseGrupos(
 
   const inscritos = await prisma.inscripcion.findMany({ where: { juego: juegoEnum } });
   const config = obtenerConfig(juegoEnum);
-  if (inscritos.length < config.jugadoresPorGrupo) {
-    throw new JugadoresInsuficientesGruposError(
-      `Se necesitan al menos ${config.jugadoresPorGrupo} inscritos para generar los grupos`,
+  if (!esCantidadValida(juegoEnum, inscritos.length)) {
+    throw new CantidadInvalidaGruposError(
+      `Solo se puede generar la fase de grupos con ${cantidadesValidas(juegoEnum).join(", ")} inscritos (hay ${inscritos.length})`,
     );
   }
 
@@ -364,6 +358,18 @@ export async function cerrarFaseGrupos(juego: string): Promise<string[]> {
   const fase = await obtenerFaseOLanzar(juegoEnum);
   if (fase.estado === "FINALIZADA") {
     throw new FaseGruposYaFinalizadaError("La fase de grupos ya está finalizada");
+  }
+
+  // No se puede cerrar la fase hasta que todos los partidos tengan resultado:
+  // clasificar con la tabla incompleta produciría un bracket con clasificados
+  // provisionales.
+  const partidosPendientes = fase.grupos
+    .flatMap((g) => g.partidos)
+    .filter((p) => p.resolvedAt === null).length;
+  if (partidosPendientes > 0) {
+    throw new FaseGruposIncompletaError(
+      `Faltan ${partidosPendientes} partido(s) de grupo por jugar antes de cerrar la fase`,
+    );
   }
 
   const clasificadosIds: string[] = [];

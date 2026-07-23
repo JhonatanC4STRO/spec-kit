@@ -19,6 +19,7 @@ const MINIMO_CIERRE_AUTOMATICO = 4;
 export class CamposIncompletosError extends Error {}
 export class JuegoInvalidoError extends Error {}
 export class NicknameDuplicadoError extends Error {}
+export class DocumentoDuplicadoError extends Error {}
 export class InscripcionesCerradasError extends Error {}
 export class CupoCompletoError extends Error {}
 
@@ -52,6 +53,7 @@ function validarCampos(input: CrearInscripcionInput): void {
   if (input.juego === "FC25") {
     if (
       input.nombreCompleto.trim() === "" ||
+      !input.nickname || input.nickname.trim() === "" ||
       !input.documento || input.documento.trim() === "" ||
       !input.ficha || input.ficha.trim() === "" ||
       !input.programa || input.programa.trim() === "" ||
@@ -122,9 +124,17 @@ export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> 
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
+      // `meta.target` indica qué índice único se violó; si involucra el
+      // documento devolvemos un error específico, de lo contrario es el apodo.
+      const target = String(error.meta?.target ?? "");
+      if (target.includes("documento")) {
+        throw new DocumentoDuplicadoError(
+          "Ya existe un jugador inscrito con ese número de documento",
+        );
+      }
       const msg = juego === "COD_BO2"
         ? "El nombre de equipo ya está registrado para este juego"
-        : "El nickname ya está registrado para este juego";
+        : "El apodo ya está registrado para este juego";
       throw new NicknameDuplicadoError(msg);
     }
     throw error;

@@ -120,7 +120,7 @@ function tabla(
                         {jugador.documento || "-"}
                       </td>
                       <td className="border border-edge px-3 py-2 text-white">
-                        {jugador.nickname || "-"}
+                        {jugador.nickname || jugador.documento || "-"}
                       </td>
                     </>
                   )}

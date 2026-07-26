@@ -3,13 +3,14 @@ import { useLocation } from "react-router-dom";
 import LandingNavbar from "../components/landing/LandingNavbar";
 import Hero from "../components/landing/Hero";
 import TournamentInfo from "../components/landing/TournamentInfo";
+import TournamentRules from "../components/landing/TournamentRules";
 import LandingInscripcionForm from "../components/landing/LandingInscripcionForm";
 import Footer from "../components/landing/Footer";
 
 function LandingPage(): JSX.Element {
   const location = useLocation();
 
-  // Scroll a la sección solicitada cuando se llega desde otra página vía navbar
+  // Scroll a la seccion solicitada cuando se llega desde otra pagina via navbar
   useEffect((): void => {
     const state = location.state as { scrollTo?: string } | null;
     if (state?.scrollTo !== undefined) {
@@ -22,6 +23,7 @@ function LandingPage(): JSX.Element {
       <LandingNavbar />
       <Hero />
       <TournamentInfo />
+      <TournamentRules />
       <LandingInscripcionForm />
       <Footer />
     </div>

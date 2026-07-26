@@ -1,146 +1,68 @@
-import { JSX } from "react";
+import { JSX, useState, useEffect } from "react";
 
 function Hero(): JSX.Element {
-  const scrollToInscripcion = (): void => {
-    const el = document.getElementById("inscripcion");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = ["/assets/landing/torneo_slider.png", "/assets/landing/BO2_slider.png"];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
 
   return (
-    <section
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #0a0a0a 0%, #0d1a0d 40%, #1a0d0a 100%)",
-      }}
-    >
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ backgroundImage: "url('/hero_banner.png')" }}
-      />
-
-      {/* Animated glow orbs */}
-      <div
-        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ background: "radial-gradient(circle, #00c853, transparent)" }}
-      />
-      <div
-        className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ background: "radial-gradient(circle, #ff6d00, transparent)" }}
-      />
-
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 opacity-5 pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,200,83,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,83,0.3) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      <div className="relative z-10 text-center px-4 wide:px-10 max-w-5xl mx-auto">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/40 bg-green-500/10 mb-6 text-xs tracking-widest uppercase text-green-400 font-semibold">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
-          SENA — Centro de Gestión de Mercados, Logística y TI
-        </div>
-
-        {/* Title */}
-        <h1
-          className="text-5xl md:text-7xl font-black tracking-tight mb-4 leading-none"
-          style={{
-            background: "linear-gradient(135deg, #ffffff 0%, #00c853 50%, #ff6d00 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
+    <section className="relative min-h-screen flex flex-col items-center justify-between overflow-hidden transition-all duration-1000 pt-32 pb-16 bg-black">
+      {/* Background image slider */}
+      {slides.map((slide, index) => (
+        <div
+          key={slide}
+          className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+            index === currentSlide ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ backgroundImage: `url('${slide}')` }}
         >
-          CAMPEONATO
-          <br />
-          GAMER SENA
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+        </div>
+      ))}
+
+      {/* Top Title */}
+      <div className="relative z-10 text-center px-4 mt-4 md:mt-10">
+        <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-none text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]">
+          TORNEO GAMER
         </h1>
-
-        <p className="text-lg md:text-xl text-gray-300 mb-2 font-medium">
-          ⚽ EA Sports FC 25 &nbsp;·&nbsp; 🔫 Call of Duty: Black Ops 2
-        </p>
-        <p className="text-sm text-gray-500 mb-10 max-w-xl mx-auto leading-relaxed">
-          El torneo interno más épico del SENA. Demuestra tus habilidades, gana
-          reconocimiento y representá tu ficha.
-        </p>
-
-        {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button
-            type="button"
-            id="hero-inscribirse-btn"
-            onClick={scrollToInscripcion}
-            className="px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-            style={{
-              background: "linear-gradient(135deg, #00c853, #00e676)",
-              color: "#000",
-              boxShadow: "0 0 30px rgba(0,200,83,0.4)",
-            }}
-          >
-            Inscribirme ahora
-          </button>
-          <a
-            href="#info"
-            className="px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest border border-white/20 text-white hover:border-white/60 transition-all duration-300 hover:scale-105"
-          >
-            Ver información
-          </a>
-        </div>
-
-        {/* Bracket links */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-4">
-          <a
-            href="/bracket/fc25"
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-widest border transition-all duration-300 hover:scale-105"
-            style={{
-              borderColor: "rgba(0,200,83,0.5)",
-              color: "#00c853",
-              background: "rgba(0,200,83,0.08)",
-            }}
-          >
-            ⚽ Bracket FC 25
-          </a>
-          <a
-            href="/bracket/cod-bo2"
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-widest border transition-all duration-300 hover:scale-105"
-            style={{
-              borderColor: "rgba(255,109,0,0.5)",
-              color: "#ff6d00",
-              background: "rgba(255,109,0,0.08)",
-            }}
-          >
-            🔫 Bracket COD BO2
-          </a>
-        </div>
-
-        {/* Stats bar */}
-        <div className="mt-16 grid grid-cols-3 gap-4 max-w-lg mx-auto">
-          {[
-            { label: "Juegos", value: "2" },
-            { label: "Fichas participantes", value: "10+" },
-            { label: "Premiación", value: "🏆" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm py-4 px-2"
-            >
-              <div className="text-2xl font-black text-white">{stat.value}</div>
-              <div className="text-xs text-gray-400 mt-1">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+        <h2 className="text-4xl md:text-5xl font-black tracking-widest text-white mt-4 drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]">
+          ADSO 2026
+        </h2>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50">
-        <div className="w-5 h-8 rounded-full border border-white/30 flex items-start justify-center p-1">
-          <div className="w-1 h-2 rounded-full bg-white animate-bounce" />
+      {/* Bottom Information */}
+      <div className="relative z-10 text-center px-4 flex flex-col items-center mt-auto">
+        <p className="text-xl md:text-2xl text-white font-medium mb-6 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-3xl text-center">
+          {currentSlide === 0
+            ? "El torneo más épico del SENA. ¡Demuestra tus habilidades!"
+            : "La victoria pertenece al mejor equipo."}
+        </p>
+
+        {/* COMPITE. DIVIÉRTETE. GANA. */}
+        <div className="mb-8 px-6 py-2 border border-white/30 rounded-full bg-black/20 backdrop-blur-sm">
+          <span className="text-white text-sm md:text-base font-bold tracking-[0.2em] uppercase">
+            COMPITE. DIVIÉRTETE. GANA.
+          </span>
         </div>
+
+        {/* Single Button: Acceder */}
+        <a
+          href="#info"
+          className="px-12 py-4 rounded-xl font-bold text-base uppercase tracking-widest transition-all duration-300 hover:scale-105 hover:shadow-2xl inline-block"
+          style={{
+            background: "linear-gradient(135deg, #00c853, #00e676)",
+            color: "#000",
+            boxShadow: "0 0 30px rgba(0,200,83,0.4)",
+          }}
+        >
+          Acceder
+        </a>
       </div>
     </section>
   );

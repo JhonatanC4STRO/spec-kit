@@ -25,6 +25,14 @@ interface PartidoModal {
 
 const WALKOVER_SCORE = 3;
 
+function leerMarcador(value: string): number | null {
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return null;
+  }
+  return Number(trimmed);
+}
+
 function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps): JSX.Element {
   const [fase, setFase] = useState<FaseGruposConGrupos | null | undefined>(undefined);
   const [nombrePorId, setNombrePorId] = useState<Record<string, string>>({});
@@ -72,8 +80,8 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
 
   function abrirModal(partido: PartidoGrupo): void {
     setModal({ partido });
-    setScoreA(partido.scoreA !== null ? String(partido.scoreA) : "");
-    setScoreB(partido.scoreB !== null ? String(partido.scoreB) : "");
+    setScoreA(partido.scoreA !== null ? String(partido.scoreA) : "0");
+    setScoreB(partido.scoreB !== null ? String(partido.scoreB) : "0");
     setErrorResultado(null);
   }
 
@@ -90,9 +98,9 @@ function GruposAdminPanel({ juego, token, onFaseCerrada }: GruposAdminPanelProps
 
   async function handleRegistrarResultado(): Promise<void> {
     if (!modal) return;
-    const sA = parseInt(scoreA, 10);
-    const sB = parseInt(scoreB, 10);
-    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) {
+    const sA = leerMarcador(scoreA);
+    const sB = leerMarcador(scoreB);
+    if (sA === null || sB === null) {
       setErrorResultado("Introduce marcadores validos (>= 0)");
       return;
     }

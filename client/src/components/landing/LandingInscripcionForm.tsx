@@ -2,7 +2,13 @@ import { useState, FormEvent, useEffect, JSX } from "react";
 import { crearInscripcion } from "../../services/inscripciones";
 import { getEstado } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
-import type { Juego, EstadoInscripciones, CrearInscripcionRequest } from "@shared/types/inscripcion";
+import PagoInscripcion from "../inscripcion/PagoInscripcion";
+import type {
+  Juego,
+  EstadoInscripciones,
+  CrearInscripcionRequest,
+  CrearInscripcionResponse,
+} from "@shared/types/inscripcion";
 
 interface FormState {
   nombreCompleto: string;
@@ -40,7 +46,7 @@ const GAME_OPTIONS: { value: Juego; label: string; icon: string; color: string }
 function LandingInscripcionForm(): JSX.Element {
   const [form, setForm] = useState<FormState>(ESTADO_INICIAL);
   const [error, setError] = useState<string | null>(null);
-  const [exito, setExito] = useState<boolean>(false);
+  const [registroCreado, setRegistroCreado] = useState<CrearInscripcionResponse | null>(null);
   const [enviando, setEnviando] = useState<boolean>(false);
   const [estado, setEstado] = useState<EstadoInscripciones | null>(null);
 
@@ -113,8 +119,8 @@ function LandingInscripcionForm(): JSX.Element {
         payload.nickEquipo = form.nickEquipo;
       }
 
-      await crearInscripcion(payload);
-      setExito(true);
+      const registro = await crearInscripcion(payload);
+      setRegistroCreado(registro);
       setForm(ESTADO_INICIAL);
     } catch (err: unknown) {
       if (err instanceof HttpError) {
@@ -179,22 +185,23 @@ function LandingInscripcionForm(): JSX.Element {
             backdropFilter: "blur(12px)",
           }}
         >
-          {exito ? (
-            <div className="text-center py-8">
+          {registroCreado !== null ? (
+            <div className="flex flex-col gap-6 py-8">
               <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-2xl font-black text-white mb-2">
-                ¡Inscripción exitosa!
-              </h3>
-              <p className="text-gray-400 mb-6">
-                Tu cupo ha sido registrado. Estaremos comunicándonos contigo
-                por los medios del SENA con los detalles del torneo.
-              </p>
+              <div className="text-center">
+                <h3 className="text-2xl font-black text-white mb-2">
+                  ¡Inscripción registrada!
+                </h3>
+                <p className="text-gray-400">
+                  Tu cupo queda pendiente hasta completar el pago de inscripción.
+                </p>
+              </div>
+              <PagoInscripcion pago={registroCreado.pago} />
               <button
                 type="button"
                 id="inscripcion-nueva-btn"
-                onClick={(): void => setExito(false)}
-                className="px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105"
-                style={{ background: "#00c853", color: "#000" }}
+                onClick={(): void => setRegistroCreado(null)}
+                className="self-center px-6 py-3 rounded font-bold text-sm uppercase tracking-wide bg-primary text-black transition-all duration-200 hover:bg-primary/90"
               >
                 Registrar otro participante
               </button>

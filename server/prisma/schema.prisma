@@ -12,6 +12,11 @@ enum Juego {
   COD_BO2
 }
 
+enum EstadoPagoInscripcion {
+  PENDIENTE_PAGO
+  PAGADA
+}
+
 model Inscripcion {
   id                   String   @id @default(uuid())
   nombreCompleto       String
@@ -19,7 +24,9 @@ model Inscripcion {
   nicknameNormalizado  String?
   documento            String?
   juego                Juego
+  estadoPago           EstadoPagoInscripcion @default(PENDIENTE_PAGO)
   createdAt            DateTime @default(now())
+  pago                 Pago?
 
   // COD BO2 team fields
   jugador1Nombre       String?
@@ -32,6 +39,61 @@ model Inscripcion {
 
   @@unique([juego, nicknameNormalizado])
   @@unique([juego, documento])
+}
+
+enum MetodoPago {
+  SIN_SELECCION
+  EPAYCO
+  EFECTIVO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  EN_PROCESO
+  PAGADO
+  RECHAZADO
+  FALLIDO
+}
+
+enum TipoEventoPago {
+  CREADO
+  METODO_EFECTIVO
+  SESION_EPAYCO_CREADA
+  WEBHOOK_RECIBIDO
+  WEBHOOK_INVALIDO
+  PAGO_CONFIRMADO
+  PAGO_RECHAZADO
+  PAGO_FALLIDO
+  EFECTIVO_CONFIRMADO
+}
+
+model Pago {
+  id                   String      @id @default(uuid())
+  inscripcionId        String      @unique
+  inscripcion          Inscripcion @relation(fields: [inscripcionId], references: [id], onDelete: Cascade)
+  monto                Decimal     @db.Decimal(10, 2)
+  moneda               String      @default("COP")
+  metodo               MetodoPago  @default(SIN_SELECCION)
+  estado               EstadoPago  @default(PENDIENTE)
+  referenciaInterna    String      @unique
+  epaycoSessionId      String?
+  epaycoRefPayco       String?
+  epaycoTransactionId  String?     @unique
+  epaycoResponse       String?
+  epaycoFranchise      String?
+  fechaConfirmacion    DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  eventos              EventoPago[]
+}
+
+model EventoPago {
+  id        String         @id @default(uuid())
+  pagoId    String
+  pago      Pago           @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+  tipo      TipoEventoPago
+  detalle   Json?
+  createdAt DateTime       @default(now())
 }
 
 model EstadoInscripciones {

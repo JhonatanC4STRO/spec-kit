@@ -110,7 +110,9 @@ export async function generarFaseGrupos(
   const existente = await prisma.faseGrupos.findUnique({ where: { juego: juegoEnum } });
   if (existente) throw new FaseGruposYaExisteError("Ya existe una fase de grupos para este juego");
 
-  const inscritos = await prisma.inscripcion.findMany({ where: { juego: juegoEnum } });
+  const inscritos = await prisma.inscripcion.findMany({
+    where: { juego: juegoEnum, estadoPago: "PAGADA" },
+  });
   const config = obtenerConfig(juegoEnum);
   if (!esCantidadValida(juegoEnum, inscritos.length)) {
     throw new CantidadInvalidaGruposError(

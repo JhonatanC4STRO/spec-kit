@@ -1,3 +1,5 @@
+import type { EstadoPagoInscripcion, PagoResumen } from "./pago";
+
 export type Juego = "FC25" | "COD_BO2";
 
 export interface Inscripcion {
@@ -6,6 +8,8 @@ export interface Inscripcion {
   nickname: string | null;
   documento?: string | null;
   juego: Juego;
+  estadoPago: EstadoPagoInscripcion;
+  pago?: PagoResumen | null;
   createdAt: string;
 
   // COD BO2 team fields
@@ -16,6 +20,11 @@ export interface Inscripcion {
   correo?: string | null;
   telefono?: string | null;
   nickEquipo?: string | null;
+}
+
+export interface CrearInscripcionResponse {
+  inscripcion: Inscripcion;
+  pago: PagoResumen;
 }
 
 export interface CrearInscripcionRequest {

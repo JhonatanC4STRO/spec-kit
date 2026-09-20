@@ -9,6 +9,7 @@ import AdminBracketCodPage from "./pages/AdminBracketCodPage";
 import LandingPage from "./pages/LandingPage";
 import PublicBracketFcPage from "./pages/PublicBracketFcPage";
 import PublicBracketCodPage from "./pages/PublicBracketCodPage";
+import PagoRespuestaPage from "./pages/PagoRespuestaPage";
 
 function App(): JSX.Element {
   return (
@@ -19,6 +20,7 @@ function App(): JSX.Element {
         <Route path="/home" element={<LandingPage />} />
         <Route element={<AppLayout />}>
           <Route path="/inscripcion" element={<InscripcionPage />} />
+          <Route path="/pago/respuesta" element={<PagoRespuestaPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/jugadores" element={<AdminJugadoresPage />} />
           <Route path="/admin/bracket/fc25" element={<AdminBracketFc25Page />} />

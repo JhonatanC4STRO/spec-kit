@@ -69,6 +69,9 @@ function AdminJugadoresPage(): JSX.Element {
           setEstado((previo) => (previo === null ? previo : { ...previo, [juego]: { abierta } }))
         }
         onEliminar={(id): void => setAEliminar(buscarJugador(id) ?? null)}
+        onPagoConfirmado={(): void => {
+          cargar().catch((): void => undefined);
+        }}
       />
       {aEliminar !== null && (
         <ConfirmarEliminacion

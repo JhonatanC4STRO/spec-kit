@@ -9,6 +9,7 @@ export async function obtenerJugadoresPublico(
   res: Response,
 ): Promise<void> {
   const jugadores = await prisma.inscripcion.findMany({
+    where: { estadoPago: "PAGADA" },
     select: { id: true, nombreCompleto: true, juego: true },
     orderBy: { createdAt: "asc" },
   });

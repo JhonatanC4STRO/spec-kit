@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import type { ListadoPorJuego, EstadoInscripciones, Juego } from "@shared/types/inscripcion";
+import { confirmarPagoEfectivo } from "../../services/pagos";
 import ToggleInscripciones from "./ToggleInscripciones";
 
 interface ListadoJugadoresProps {
@@ -8,6 +9,7 @@ interface ListadoJugadoresProps {
   token: string;
   onCambioEstado: (juego: Juego, abierta: boolean) => void;
   onEliminar: (id: string) => void;
+  onPagoConfirmado: () => void;
 }
 
 function tabla(
@@ -18,8 +20,14 @@ function tabla(
   token: string,
   onCambioEstado: (juego: Juego, abierta: boolean) => void,
   onEliminar: (id: string) => void,
+  onPagoConfirmado: () => void,
 ): JSX.Element {
   const esCod = juego === "COD_BO2";
+
+  async function confirmarEfectivo(pagoId: string): Promise<void> {
+    await confirmarPagoEfectivo(pagoId, token);
+    onPagoConfirmado();
+  }
 
   return (
     <div className="bg-bg-card border border-edge rounded p-4 flex flex-col gap-3">
@@ -78,6 +86,9 @@ function tabla(
                 <th className="border border-edge px-3 py-2 text-left text-text-secondary uppercase tracking-wide text-xs">
                   Fecha
                 </th>
+                <th className="border border-edge px-3 py-2 text-left text-text-secondary uppercase tracking-wide text-xs">
+                  Pago
+                </th>
                 <th className="border border-edge px-3 py-2"></th>
               </tr>
             </thead>
@@ -127,6 +138,28 @@ function tabla(
                   <td className="border border-edge px-3 py-2 text-text-secondary">
                     {new Date(jugador.createdAt).toLocaleString()}
                   </td>
+                  <td className="border border-edge px-3 py-2 text-xs">
+                    <div className={jugador.estadoPago === "PAGADA" ? "text-emerald-300" : "text-amber-300"}>
+                      {jugador.estadoPago === "PAGADA" ? "Pagada" : "Pendiente"}
+                    </div>
+                    <div className="text-text-secondary">
+                      {jugador.pago?.metodo ?? "SIN_SELECCION"}
+                    </div>
+                    <div className="font-mono text-white/70">
+                      {jugador.pago?.referenciaInterna ?? "-"}
+                    </div>
+                    {jugador.pago?.metodo === "EFECTIVO" && jugador.pago.estado === "PENDIENTE" && (
+                      <button
+                        type="button"
+                        className="mt-2 rounded bg-primary px-2 py-1 font-bold uppercase tracking-wide text-black transition-colors duration-200 hover:bg-primary/90"
+                        onClick={(): void => {
+                          confirmarEfectivo(jugador.pago?.id ?? "").catch((): void => undefined);
+                        }}
+                      >
+                        Confirmar efectivo
+                      </button>
+                    )}
+                  </td>
                   <td className="border border-edge px-3 py-2 text-center">
                     <button
                       className="text-red-400 hover:text-red-300 transition-colors duration-200 font-bold"
@@ -151,6 +184,7 @@ function ListadoJugadores({
   token,
   onCambioEstado,
   onEliminar,
+  onPagoConfirmado,
 }: ListadoJugadoresProps): JSX.Element {
   return (
     <div className="flex flex-col gap-6">
@@ -162,6 +196,7 @@ function ListadoJugadores({
         token,
         onCambioEstado,
         onEliminar,
+        onPagoConfirmado,
       )}
       {tabla(
         "Call of Duty Black Ops 2",
@@ -171,6 +206,7 @@ function ListadoJugadores({
         token,
         onCambioEstado,
         onEliminar,
+        onPagoConfirmado,
       )}
     </div>
   );

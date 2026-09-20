@@ -1,7 +1,8 @@
 import { useState, FormEvent, JSX } from "react";
 import { crearInscripcion } from "../../services/inscripciones";
 import { HttpError } from "../../services/http";
-import type { Juego, EstadoInscripciones } from "@shared/types/inscripcion";
+import PagoInscripcion from "./PagoInscripcion";
+import type { Juego, EstadoInscripciones, CrearInscripcionResponse } from "@shared/types/inscripcion";
 
 interface FormState {
   nombreCompleto: string;
@@ -32,7 +33,7 @@ const ESTADO_INICIAL: FormState = {
 function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
   const [form, setForm] = useState<FormState>(ESTADO_INICIAL);
   const [error, setError] = useState<string | null>(null);
-  const [exito, setExito] = useState<boolean>(false);
+  const [registroCreado, setRegistroCreado] = useState<CrearInscripcionResponse | null>(null);
   const [enviando, setEnviando] = useState<boolean>(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -64,7 +65,7 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
 
     setEnviando(true);
     try {
-      await crearInscripcion({
+      const registro = await crearInscripcion({
         nombreCompleto: form.nombreCompleto,
         nickname: form.nickname,
         juego: form.juego,
@@ -78,7 +79,7 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
             }
           : {}),
       });
-      setExito(true);
+      setRegistroCreado(registro);
       setForm(ESTADO_INICIAL);
     } catch (err: unknown) {
       if (err instanceof HttpError) {
@@ -91,10 +92,20 @@ function InscripcionForm({ estado }: InscripcionFormProps): JSX.Element {
     }
   }
 
-  if (exito) {
+  if (registroCreado !== null) {
     return (
-      <div className="rounded-md bg-bg-card border border-edge p-4 text-emerald-300">
-        Inscripción registrada con éxito.
+      <div className="flex max-w-md flex-col gap-4">
+        <div className="rounded-md bg-bg-card border border-edge p-4 text-emerald-300">
+          Inscripción registrada. Para confirmar tu cupo, completa el pago.
+        </div>
+        <PagoInscripcion pago={registroCreado.pago} />
+        <button
+          type="button"
+          onClick={(): void => setRegistroCreado(null)}
+          className="rounded border border-edge bg-bg-alt px-4 py-2 font-bold uppercase tracking-wide text-white transition-colors duration-200 hover:border-primary"
+        >
+          Registrar otro participante
+        </button>
       </div>
     );
   }

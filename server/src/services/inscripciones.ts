@@ -1,4 +1,6 @@
-import { PrismaClient, Inscripcion, Juego, Prisma } from "@prisma/client";
+import { PrismaClient, Inscripcion as PrismaInscripcion, Juego, Pago, Prisma } from "@prisma/client";
+import { crearPagoPendiente, serializarPago } from "./pagos";
+import type { CrearInscripcionResponse, Inscripcion as InscripcionDto } from "@shared/types/inscripcion";
 
 const prisma = new PrismaClient();
 
@@ -81,7 +83,7 @@ function esPotenciaDeDos(n: number): boolean {
   return n > 0 && (n & (n - 1)) === 0;
 }
 
-export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> {
+export async function crear(input: CrearInscripcionInput): Promise<CrearInscripcionResponse> {
   validarCampos(input);
   const juego = input.juego as Juego;
 
@@ -97,7 +99,8 @@ export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> 
     );
   }
 
-  let creada: Inscripcion;
+  let creada: PrismaInscripcion;
+  let pago: Pago | null = null;
   try {
     const nicknameTrim = input.nickname?.trim() || null;
     const data: Prisma.InscripcionCreateInput = {
@@ -118,7 +121,14 @@ export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> 
       data.nickEquipo = input.nickEquipo?.trim() || null;
     }
 
-    creada = await prisma.inscripcion.create({ data });
+    const resultado = await prisma.$transaction(
+      async (tx): Promise<{ inscripcion: PrismaInscripcion; pago: Pago }> => {
+      const inscripcion = await tx.inscripcion.create({ data });
+      const pagoPendiente = await crearPagoPendiente(tx, inscripcion.id);
+      return { inscripcion, pago: pagoPendiente };
+    });
+    creada = resultado.inscripcion;
+    pago = resultado.pago;
   } catch (error: unknown) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -147,7 +157,33 @@ export async function crear(input: CrearInscripcionInput): Promise<Inscripcion> 
     await actualizarEstado(juego, false);
   }
 
-  return creada;
+  if (pago === null) {
+    throw new Error("No se pudo crear el pago de la inscripción");
+  }
+
+  return {
+    inscripcion: serializarInscripcion(creada),
+    pago: serializarPago(pago),
+  };
+}
+
+function serializarInscripcion(inscripcion: PrismaInscripcion): InscripcionDto {
+  return {
+    id: inscripcion.id,
+    nombreCompleto: inscripcion.nombreCompleto,
+    nickname: inscripcion.nickname,
+    documento: inscripcion.documento,
+    juego: inscripcion.juego,
+    estadoPago: inscripcion.estadoPago,
+    createdAt: inscripcion.createdAt.toISOString(),
+    jugador1Nombre: inscripcion.jugador1Nombre,
+    jugador2Nombre: inscripcion.jugador2Nombre,
+    ficha: inscripcion.ficha,
+    programa: inscripcion.programa,
+    correo: inscripcion.correo,
+    telefono: inscripcion.telefono,
+    nickEquipo: inscripcion.nickEquipo,
+  };
 }
 
 export interface EstadoInscripcionesPorJuego {
@@ -184,13 +220,16 @@ export async function actualizarEstado(
   return { abierta: estado.abierta };
 }
 
+type InscripcionConPago = PrismaInscripcion & { pago: Pago | null };
+
 export interface ListadoPorJuego {
-  FC25: Inscripcion[];
-  COD_BO2: Inscripcion[];
+  FC25: InscripcionConPago[];
+  COD_BO2: InscripcionConPago[];
 }
 
 export async function listarAgrupadoPorJuego(): Promise<ListadoPorJuego> {
   const inscripciones = await prisma.inscripcion.findMany({
+    include: { pago: true },
     orderBy: { createdAt: "asc" },
   });
 

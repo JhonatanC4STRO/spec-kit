@@ -11,6 +11,7 @@ import {
   CupoCompletoError,
   CrearInscripcionInput,
 } from "../services/inscripciones";
+import { ConfiguracionPagoError } from "../services/pagos";
 
 export async function crearInscripcion(req: Request, res: Response): Promise<void> {
   try {
@@ -48,6 +49,10 @@ export async function crearInscripcion(req: Request, res: Response): Promise<voi
     }
     if (error instanceof CupoCompletoError) {
       res.status(409).json({ error: error.message });
+      return;
+    }
+    if (error instanceof ConfiguracionPagoError) {
+      res.status(503).json({ error: error.message });
       return;
     }
     throw error;

@@ -1,14 +1,15 @@
 import { httpGet, httpPost, httpDelete, httpPatch } from "./http";
 import type {
   CrearInscripcionRequest,
+  CrearInscripcionResponse,
   Inscripcion,
   EstadoInscripciones,
   ListadoPorJuego,
   Juego,
 } from "@shared/types/inscripcion";
 
-export function crearInscripcion(payload: CrearInscripcionRequest): Promise<Inscripcion> {
-  return httpPost<Inscripcion>("/inscripciones", payload);
+export function crearInscripcion(payload: CrearInscripcionRequest): Promise<CrearInscripcionResponse> {
+  return httpPost<CrearInscripcionResponse>("/inscripciones", payload);
 }
 
 export function getEstado(): Promise<EstadoInscripciones> {

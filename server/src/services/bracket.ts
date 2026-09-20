@@ -240,7 +240,9 @@ export async function generarBracket(
   if (jugadoresOverride !== undefined && jugadoresOverride.length > 0) {
     jugadoresIds = shuffle(jugadoresOverride);
   } else {
-    const inscripciones = await prisma.inscripcion.findMany({ where: { juego: juego as Juego } });
+    const inscripciones = await prisma.inscripcion.findMany({
+      where: { juego: juego as Juego, estadoPago: "PAGADA" },
+    });
     if (!esCantidadValida(juego as Juego, inscripciones.length)) {
       throw new CantidadInvalidaError(
         `Solo se puede generar el bracket con ${cantidadesValidas(juego as Juego).join(", ")} jugadores (hay ${inscripciones.length})`,
